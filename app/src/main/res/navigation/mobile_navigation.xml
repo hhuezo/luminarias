@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/reporteFallaFragment">
+
+    <fragment
+        android:id="@+id/navigation_home"
+        android:name="com.dgehm.luminarias.ui.home.HomeFragment"
+        android:label="@string/title_home"
+        tools:layout="@layout/fragment_home" />
+
+    <fragment
+        android:id="@+id/navigation_dashboard"
+        android:name="com.dgehm.luminarias.ui.dashboard.DashboardFragment"
+        android:label="@string/title_dashboard"
+        tools:layout="@layout/fragment_dashboard" />
+
+    <fragment
+        android:id="@+id/navigation_notifications"
+        android:name="com.dgehm.luminarias.ui.notifications.NotificationsFragment"
+        android:label="@string/title_notifications"
+        tools:layout="@layout/fragment_notifications" />
+    <fragment
+        android:id="@+id/reporteFallaFragment"
+        android:name="com.dgehm.luminarias.ui.reporte_falla.ReporteFallaFragment"
+        android:label="fragment_reporte_falla"
+        tools:layout="@layout/fragment_reporte_falla" >
+        <action
+            android:id="@+id/action_reporteFallaFragment_to_reporteFallaMapaFragment"
+            app:destination="@id/reporteFallaMapaFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/reporteFallaMapaFragment"
+        android:name="com.dgehm.luminarias.ui.reporte_falla.ReporteFallaMapaFragment"
+        android:label="fragment_reporte_falla_mapa"
+        tools:layout="@layout/fragment_reporte_falla_mapa" >
+        <action
+            android:id="@+id/action_reporteFallaMapaFragment_to_reporteFallaIngresoFragment"
+            app:destination="@id/reporteFallaIngresoFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/reporteFallaIngresoFragment"
+        android:name="com.dgehm.luminarias.ui.reporte_falla.ReporteFallaIngresoFragment"
+        android:label="fragment_reporte_falla_ingreso"
+        tools:layout="@layout/fragment_reporte_falla_ingreso" />
+</navigation>
