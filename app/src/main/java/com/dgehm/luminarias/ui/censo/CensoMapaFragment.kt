@@ -1,4 +1,4 @@
-package com.dgehm.luminarias.ui.reporte_falla
+package com.dgehm.luminarias.ui.censo
 
 import android.Manifest
 import android.content.Intent
@@ -19,7 +19,9 @@ import androidx.navigation.fragment.findNavController
 import com.dgehm.luminarias.GlobalUbicacion
 import com.dgehm.luminarias.HttpClient
 import com.dgehm.luminarias.R
-import com.dgehm.luminarias.databinding.FragmentReporteFallaMapaBinding
+import com.dgehm.luminarias.ui.reporte_falla.ReporteFallaMapaFragment
+import com.dgehm.luminarias.ui.reporte_falla.ReporteFallaMapaFragment.Companion
+import com.dgehm.luminarias.ui.reporte_falla.ReporteFallaMapaFragmentDirections
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -45,7 +47,7 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
-class ReporteFallaMapaFragment : Fragment(), OnMapReadyCallback {
+class CensoMapaFragment : Fragment() , OnMapReadyCallback {
 
     private lateinit var mapView: MapView
     private lateinit var loadingProgressBar: ProgressBar
@@ -75,27 +77,25 @@ class ReporteFallaMapaFragment : Fragment(), OnMapReadyCallback {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        val rootView = inflater.inflate(R.layout.fragment_reporte_falla_mapa, container, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
+                              savedInstanceState: Bundle?): View? {
+
+
+        val rootView = inflater.inflate(R.layout.fragment_censo_mapa, container, false)
 
         mapView = rootView.findViewById(R.id.mapView)
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync(this)
 
-
         loadingProgressBar = rootView.findViewById(R.id.loadingProgressBar)
 
         loadingProgressBar.visibility = View.VISIBLE
-
-        Log.d("test","test")
 
 
 
         btnConfirmarUbicacion = rootView.findViewById<Button>(R.id.btnConfirmarUbicacion)
         btnConfirmarUbicacion.visibility = View.GONE
+
         btnConfirmarUbicacion.setOnClickListener {
 
             GlobalUbicacion.latitud = currentLatLng.latitude.toFloat()
@@ -122,7 +122,7 @@ class ReporteFallaMapaFragment : Fragment(), OnMapReadyCallback {
                     val distritoResult = getDistrito(distritoNombre!!)
                     if (distritoResult != null) {
                         distritoId = distritoResult.toString()
-                       // Log.d("Distrito", "Distrito $distritoId")
+                        // Log.d("Distrito", "Distrito $distritoId")
 
                         if (distritoId != null) { // Verifica si distritoId no está vacío
                             val municipioResult = getMunicipio(distritoId!!.toIntOrNull() ?: 0)
@@ -138,6 +138,10 @@ class ReporteFallaMapaFragment : Fragment(), OnMapReadyCallback {
                         Log.e("Distrito", "No se pudo obtener el distrito")
                     }
                 }
+
+                GlobalUbicacion.departamentoId = departamentoId?.toIntOrNull() ?: 0
+                GlobalUbicacion.distritoId = distritoId?.toIntOrNull() ?: 0
+                GlobalUbicacion.municipioId = municipioId?.toIntOrNull() ?: 0
 
                 Log.d("ubicacion ","departamen $departamentoNombre id: $departamentoId , distrito $distritoNombre id: $distritoId , id municipio $municipioId")
 
@@ -156,10 +160,9 @@ class ReporteFallaMapaFragment : Fragment(), OnMapReadyCallback {
 
         // Cambiar el título de la ActionBar
         (activity as? AppCompatActivity)?.supportActionBar?.apply {
-            title = "Reporte de falla"
+            title = "Censo luminaria"
             setDisplayHomeAsUpEnabled(true) // Muestra el botón de retroceso
         }
-
 
         // Manejar la acción del botón de retroceso
         requireActivity().onBackPressedDispatcher.addCallback(this) {
@@ -168,14 +171,11 @@ class ReporteFallaMapaFragment : Fragment(), OnMapReadyCallback {
     }
 
 
-
-
-
     private suspend fun obtenerUbicacion(): String? {
+
         requireActivity().runOnUiThread {
             btnConfirmarUbicacion.isEnabled = false
         }
-
 
         // Crear el endpoint con los parámetros de latitud y longitud
         val endpoint = "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${currentLatLng.latitude.toFloat()}&lon=${currentLatLng.longitude.toFloat()}"
@@ -195,11 +195,16 @@ class ReporteFallaMapaFragment : Fragment(), OnMapReadyCallback {
 
                 if (response.isSuccessful) {
                     val responseBody = response.body?.string()
+
+                    //Log.d("aa","response "+responseBody)
+
                     // Intentar convertir la respuesta JSON en un JSONObject
                     val jsonObject = JSONObject(responseBody)
 
                     // Extraer los valores del estado (departamento) y municipio
                     val address = jsonObject.optJSONObject("address")
+
+                    //Log.e("API Error", "address $address")
 
                     val departamento = address?.optString("state")
                     val distrito = address?.optString("town")
@@ -219,8 +224,6 @@ class ReporteFallaMapaFragment : Fragment(), OnMapReadyCallback {
                     }
                     return@withContext null
                 }
-
-
             } catch (e: IOException) {
                 Log.e("API Error", "Failed to fetch location data", e)
                 requireActivity().runOnUiThread {
@@ -228,8 +231,6 @@ class ReporteFallaMapaFragment : Fragment(), OnMapReadyCallback {
                 }
                 return@withContext null
             }
-
-
         }
     }
 
@@ -399,15 +400,6 @@ class ReporteFallaMapaFragment : Fragment(), OnMapReadyCallback {
     }
 
 
-
-
-    private fun navigateToReporteFallaIngresoFragment() {
-        val action = ReporteFallaMapaFragmentDirections
-            .actionReporteFallaMapaFragmentToReporteFallaIngresoFragment()
-        findNavController().navigate(action)
-    }
-
-
     private fun checkLocationPermission() {
         if (ActivityCompat.checkSelfPermission(
                 requireContext(),
@@ -416,16 +408,10 @@ class ReporteFallaMapaFragment : Fragment(), OnMapReadyCallback {
         ) {
             requestPermissions(
                 arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                LOCATION_PERMISSION_REQUEST_CODE
+                CensoMapaFragment.LOCATION_PERMISSION_REQUEST_CODE
             )
         }
     }
-
-
-
-
-
-
 
 
     override fun onMapReady(googleMap: GoogleMap) {
@@ -461,6 +447,7 @@ class ReporteFallaMapaFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
+
     private fun addOrMoveMarker(latLng: LatLng, title: String) {
         if (currentMarker == null) {
             // Si no hay marcador, crea uno
@@ -478,8 +465,6 @@ class ReporteFallaMapaFragment : Fragment(), OnMapReadyCallback {
     }
 
 
-
-
     private fun promptEnableLocation() {
         val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
         startActivity(intent)
@@ -490,7 +475,7 @@ class ReporteFallaMapaFragment : Fragment(), OnMapReadyCallback {
         permissions: Array<out String>,
         grantResults: IntArray
     ) {
-        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+        if (requestCode == com.dgehm.luminarias.ui.censo.CensoMapaFragment.LOCATION_PERMISSION_REQUEST_CODE) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 onMapReady(mMap)
             }
@@ -511,4 +496,11 @@ class ReporteFallaMapaFragment : Fragment(), OnMapReadyCallback {
         super.onLowMemory()
         mapView.onLowMemory()
     }
+
+
+    private fun navigateToReporteFallaIngresoFragment() {
+        val action = CensoMapaFragmentDirections.actionCensoMapaFragmentToCensoIngresoFragment()
+        findNavController().navigate(action)
+    }
+
 }

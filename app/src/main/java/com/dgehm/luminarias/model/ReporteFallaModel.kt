@@ -57,3 +57,21 @@ data class Distrito(
     val extension_territorial: String? = null,
     val poblacion: String? = null
 )
+
+data class ResponseReporteFallaIndex(
+    val success: Boolean?,
+    val data: List<ReporteFalla>?
+)
+
+data class ReporteFalla(
+    val fecha: String?,
+    val tipo: String?,
+    val nombre_contacto: String?,
+    val telefono_contacto: String?,
+    val descripcion: String?,
+    val distrito: String?,
+    val municipio: String?,
+    val departamento: String?,
+    val estado_reporte_id: Int?
+)
+

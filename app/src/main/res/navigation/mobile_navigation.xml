@@ -11,11 +11,22 @@
         android:label="@string/title_home"
         tools:layout="@layout/fragment_home" />
 
+
+    <fragment
+        android:id="@+id/censoFragment"
+        android:name="com.dgehm.luminarias.ui.censo.CensoFragment"
+        android:label="fragment_censo"
+        tools:layout="@layout/fragment_censo" >
+        <action
+            android:id="@+id/action_censoFragment_to_censoMapaFragment"
+            app:destination="@id/censoMapaFragment" />
+    </fragment>
+
     <fragment
         android:id="@+id/navigation_dashboard"
-        android:name="com.dgehm.luminarias.ui.dashboard.DashboardFragment"
+        android:name="com.dgehm.luminarias.ui.censo.CensoFragment"
         android:label="@string/title_dashboard"
-        tools:layout="@layout/fragment_dashboard" />
+        tools:layout="@layout/fragment_censo" />
 
     <fragment
         android:id="@+id/navigation_notifications"
@@ -44,5 +55,24 @@
         android:id="@+id/reporteFallaIngresoFragment"
         android:name="com.dgehm.luminarias.ui.reporte_falla.ReporteFallaIngresoFragment"
         android:label="fragment_reporte_falla_ingreso"
-        tools:layout="@layout/fragment_reporte_falla_ingreso" />
+        tools:layout="@layout/fragment_reporte_falla_ingreso" >
+        <action
+            android:id="@+id/action_reporteFallaIngresoFragment_to_reporteFallaFragment"
+            app:destination="@id/reporteFallaFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/censoMapaFragment"
+        android:name="com.dgehm.luminarias.ui.censo.CensoMapaFragment"
+        android:label="fragment_censo_mapa"
+        tools:layout="@layout/fragment_censo_mapa" >
+        <action
+            android:id="@+id/action_censoMapaFragment_to_censoIngresoFragment"
+            app:destination="@id/censoIngresoFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/censoIngresoFragment"
+        android:name="com.dgehm.luminarias.ui.censo.CensoIngresoFragment"
+        android:label="fragment_censo_ingreso"
+        tools:layout="@layout/fragment_censo_ingreso" />
 </navigation>

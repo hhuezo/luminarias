@@ -2,6 +2,7 @@ package com.dgehm.luminarias.ui.reporte_falla
 
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -11,6 +12,7 @@ import android.os.Looper
 import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Base64
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -29,7 +31,10 @@ import com.dgehm.luminarias.GlobalUbicacion
 import com.dgehm.luminarias.R
 import com.dgehm.luminarias.databinding.FragmentReporteFallaIngresoBinding
 import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.navigation.fragment.findNavController
 import com.afollestad.materialdialogs.MaterialDialog
 import com.dgehm.luminarias.HttpClient
 import com.dgehm.luminarias.model.Departamento
@@ -47,6 +52,10 @@ import okhttp3.Response
 import org.json.JSONObject
 import java.io.File
 import java.io.IOException
+import java.io.InputStream
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class ReporteFallaIngresoFragment : Fragment() {
 
@@ -56,6 +65,7 @@ class ReporteFallaIngresoFragment : Fragment() {
     private var distritoId: Int = 0
     private var municipioId: Int = 0
     private var tipoFallaId: Int = 0
+    private var usuarioId: Int = 0
     private var _binding: FragmentReporteFallaIngresoBinding? = null
     private val binding get() = _binding!!
 
@@ -77,6 +87,8 @@ class ReporteFallaIngresoFragment : Fragment() {
     private val PICK_IMAGE_REQUEST = 1
     private val CAMERA_REQUEST = 2
     private var photoUri: Uri? = null
+    private val REQUEST_IMAGE_CAPTURE = 1
+    private var imagenBase64: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -106,6 +118,8 @@ class ReporteFallaIngresoFragment : Fragment() {
         departamentoId = GlobalUbicacion.departamentoId!!
         distritoId = GlobalUbicacion.distritoId!!
         municipioId = GlobalUbicacion.municipioId!!
+        usuarioId = GlobalUbicacion.usuarioId!!
+
 
 
         val departamentoSpinner: Spinner? = view.findViewById(R.id.departamentoSpinner)
@@ -343,7 +357,8 @@ class ReporteFallaIngresoFragment : Fragment() {
         }
 
         btnTomarFoto.setOnClickListener {
-            openCamera()
+            //openCamera()
+            checkPermissions()
         }
 
 
@@ -452,6 +467,20 @@ class ReporteFallaIngresoFragment : Fragment() {
             val nombreContacto = editNombreContacto.text.toString().trim()
             val correoContacto = editCorreoContacto.text.toString().trim()
 
+
+            if (photoUri != null) {
+                try {
+                    requireContext().contentResolver.openInputStream(photoUri!!)
+                        .use { inputStream ->
+                            val bytes = inputStream?.readBytes()
+                            imagenBase64 = Base64.encodeToString(bytes, Base64.DEFAULT)
+                            //Log.d("ImagenBase64", imagenBase64 ?: "La cadena es nula")
+                        }
+                } catch (e: IOException) {
+                    Log.e("ImagenBase64", "Error al leer la imagen", e)
+                }
+            }
+
             // Validar si todos los datos han sido ingresados y si los IDs son mayores a 0
             if (distritoId > 0 && tipoFallaId > 0 && telefono.isNotEmpty() && descripcion.isNotEmpty() && nombreContacto.isNotEmpty() && correoContacto.isNotEmpty()) {
 
@@ -501,29 +530,87 @@ class ReporteFallaIngresoFragment : Fragment() {
 
                 // Si todas las validaciones son exitosas
 
-                // Crear el objeto JSON
-               /* val json = JSONObject().apply {
-                    put("persona_id", personaId)
-                    put("cantidad", cantidad)
-                    put("interes", interes)
-                    put("tipo_pago_id", tipoPagoId)
-                    put("fecha", fecha)
-                    put("amortizacion", amortizacion)
+               // Toast.makeText(requireContext(), "¡Botón Aceptar presionado!", Toast.LENGTH_SHORT).show()
+
+
+
+                val json = JSONObject().apply {
+                    put("distrito_id", distritoId)
+                    put("tipo_falla_id", tipoFallaId)
+                    put("descripcion", descripcion)
+                    put("latitud", latitud)
+                    put("longitud", longitud)
+                    put("telefono_contacto", telefono)
+                    put("nombre_contacto", nombreContacto)
+                    put("correo_contacto", correoContacto)
+                    put("usuario_id", usuarioId)
                     put(
-                        "comprobante",
+                        "imagen",
                         if (imagenBase64.isNullOrEmpty()) JSONObject.NULL else imagenBase64
                     )
-                    put("administrador", administrador)
-                    put("pago_especifico", pagoEspecifico)
-                    put("observacion", observacion)
-                    put("numero_pagos", numero_pagos)
-                }.toString()*/
+                }.toString()
 
 
+                // Realizar la petición POST
+                val endpoint = "/api_reporte_falla"
+                client.post(endpoint, json, object : Callback {
+                    override fun onFailure(call: Call, e: IOException) {
 
+                        val dialog = MaterialDialog(requireContext()).show {
+                            title(text = "Error")
+                            message(text = "Error al hacer la petición: ${e.message}")
+                            icon(R.drawable.baseline_error_24)
+                            positiveButton(text = "Aceptar")
+                        }
 
+                        // Cerrar el diálogo después de 2 segundos
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            dialog.dismiss()
+                        }, 2000)
 
-                Toast.makeText(requireContext(), "¡Botón Aceptar presionado!", Toast.LENGTH_SHORT).show()
+                    }
+
+                    override fun onResponse(call: Call, response: Response) {
+                        val responseData = response.body?.string()
+                        Log.d("Response", responseData ?: "No se recibió ninguna respuesta")
+
+                        requireActivity().runOnUiThread {
+                            if (response.isSuccessful) {
+                                val dialog = MaterialDialog(requireContext()).show {
+                                    title(text = "Ok")
+                                    message(text = "Registro guardado correctamente")
+                                    icon(R.drawable.baseline_check_circle_24)
+                                    positiveButton(text = "Aceptar")
+                                }
+
+                                // Cerrar el diálogo después de 2 segundos
+                                Handler(Looper.getMainLooper()).postDelayed({
+                                    dialog.dismiss()
+                                }, 2000)
+
+                                //redicreccion al reporte de falla
+                                val action = ReporteFallaIngresoFragmentDirections.actionReporteFallaIngresoFragmentToReporteFallaFragment()
+                                findNavController().navigate(action)
+
+                                //requireActivity().supportFragmentManager.popBackStack()
+                            } else {
+                                val dialog = MaterialDialog(requireContext()).show {
+                                    title(text = "Error")
+                                    message(text = "Error al enviar los datos")
+                                    icon(R.drawable.baseline_error_24)
+                                    positiveButton(text = "Aceptar")
+                                }
+
+                                // Cerrar el diálogo después de 2 segundos
+                                Handler(Looper.getMainLooper()).postDelayed({
+                                    dialog.dismiss()
+                                }, 2000)
+                            }
+                        }
+                    }
+                })
+
+                Log.d("body ", "body $json")
 
             } else {
                 val dialog = MaterialDialog(requireContext()).show {
@@ -539,6 +626,8 @@ class ReporteFallaIngresoFragment : Fragment() {
                 }, 2000)
                 //Toast.makeText(requireContext(), "Debe ingresar todos los datos requeridos", Toast.LENGTH_SHORT).show()
             }
+
+
         }
 
 
@@ -704,44 +793,72 @@ class ReporteFallaIngresoFragment : Fragment() {
         startActivityForResult(intent, PICK_IMAGE_REQUEST)
     }
 
-    private fun openCamera() {
-        // Intent para abrir la cámara
-        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        if (intent.resolveActivity(requireActivity().packageManager) != null) {
-            val photoFile = createImageFile()
-            if (photoFile != null) {
-                photoUri = FileProvider.getUriForFile(requireContext(), "com.dgehm.luminarias.fileprovider", photoFile)
-                intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
-                startActivityForResult(intent, CAMERA_REQUEST)
-            }
-        }
-    }
-
-    private fun createImageFile(): File? {
-        val storageDir = requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-        return try {
-            val image = File.createTempFile("JPEG_${System.currentTimeMillis()}_", ".jpg", storageDir)
-            image
-        } catch (e: IOException) {
-            e.printStackTrace()
-            null
-        }
-    }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == Activity.RESULT_OK) {
-            if (requestCode == PICK_IMAGE_REQUEST && data != null) {
+            when (requestCode) {
                 // Para galería
-                photoUri = data.data
-                imageViewFoto.setImageURI(photoUri)
-            } else if (requestCode == CAMERA_REQUEST) {
+                PICK_IMAGE_REQUEST -> {
+                    data?.data?.let { uri ->
+                        photoUri = uri
+                        imageViewFoto.setImageURI(uri)
+                        // Hacer visible el ImageView
+                        imageViewFoto.visibility = View.VISIBLE
+                    }
+                }
+
                 // Para cámara
-                imageViewFoto.setImageURI(photoUri)
+                CAMERA_REQUEST -> {
+                    photoUri?.let { uri ->
+                        imageViewFoto.setImageURI(uri)
+                        // Hacer visible el ImageView
+                        imageViewFoto.visibility = View.VISIBLE
+                    }
+                }
             }
         }
     }
 
+
+    // Método para verificar permisos
+    private fun checkPermissions() {
+        val cameraPermission = ContextCompat.checkSelfPermission(requireContext(), android.Manifest.permission.CAMERA)
+
+        if (cameraPermission != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                requireActivity(),
+                arrayOf(android.Manifest.permission.CAMERA),
+                REQUEST_IMAGE_CAPTURE
+            )
+        } else {
+            openCamera()  // Si el permiso está concedido, abrir la cámara
+        }
+    }
+
+    // Método para abrir la cámara
+    private fun openCamera() {
+        val photoFile = createImageFile()
+        photoUri = FileProvider.getUriForFile(
+            requireContext(),
+            "com.dgehm.luminarias.fileprovider",
+            photoFile
+        )
+        val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
+            putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
+        }
+        startActivityForResult(cameraIntent, CAMERA_REQUEST)
+    }
+
+    // Método para convertir la imagen de la URI a Base64
+    private fun createImageFile(): File {
+        val storageDir = requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        return File.createTempFile(
+            "JPEG_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())}_",
+            ".jpg",
+            storageDir
+        )
+    }
 
 
 
