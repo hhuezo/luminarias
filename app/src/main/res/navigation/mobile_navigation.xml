@@ -74,5 +74,14 @@
         android:id="@+id/censoIngresoFragment"
         android:name="com.dgehm.luminarias.ui.censo.CensoIngresoFragment"
         android:label="fragment_censo_ingreso"
-        tools:layout="@layout/fragment_censo_ingreso" />
+        tools:layout="@layout/fragment_censo_ingreso" >
+        <action
+            android:id="@+id/action_censoIngresoFragment_to_censoFragment"
+            app:destination="@id/censoFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.dgehm.luminarias.ui.login.LoginFragment"
+        android:label="fragment_login"
+        tools:layout="@layout/fragment_login" />
 </navigation>

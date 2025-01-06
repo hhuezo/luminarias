@@ -9,6 +9,48 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardMensaje"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                app:cardCornerRadius="8dp"
+                android:visibility="gone"
+                android:backgroundTint="@android:color/holo_orange_light">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="16dp">
+
+                    <!-- Icono a la izquierda -->
+                    <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:src="@drawable/baseline_error_24" />
+
+                    <!-- Texto a la derecha -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginStart="8dp"
+                        android:text="Existen puntos cercanos ya registrados. Por favor verifica"
+                        android:textColor="@android:color/black"
+                        android:textSize="16sp" />
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -65,7 +107,122 @@
                     android:layout_width="match_parent"
                     android:layout_height="40dp" />
 
-                <!-- Text and Spinner for TIPO FALLA -->
+                <!-- Text and EditText for direccion -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="8dp"
+                    android:text="DIRECCIÓN"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/editDireccion"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textMultiLine"
+                    android:gravity="top|start"
+                    android:scrollHorizontally="false"
+                    android:lines="5"
+                    android:maxLines="10"
+                    android:overScrollMode="ifContentScrolls"
+                    android:scrollbars="vertical"
+                    android:ems="10" />
+
+
+                <!-- Text and Spinner for compañia-->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="8dp"
+                    android:text="COMPAÑIA"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <Spinner
+                    android:id="@+id/spinnerCompania"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp" />
+
+
+                <!-- Text and Spinner for TIPO-->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="8dp"
+                    android:text="TIPO LUMINARIA"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <Spinner
+                    android:id="@+id/spinnerTipoLuminaria"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp" />
+
+
+                <!-- Text and Spinner for TIPO-->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="8dp"
+                    android:text="POTENCIA PROMEDIO  (Vatio)"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <Spinner
+                    android:id="@+id/spinnerPotenciaPromedio"
+                    android:layout_width="match_parent"
+                    android:visibility="gone"
+                    android:layout_height="40dp" />
+
+                <EditText
+                    android:id="@+id/editPotenciaNominal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ems="10"
+                    android:inputType="number"  />
+
+
+
+
+                <!-- Text and EditText for consumo -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="8dp"
+                    android:text="CONSUMO MENSUAL (Kwh)"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/editConsumoMensual"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ems="10"
+                    android:inputType="text" />
+
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="8dp"
+                    android:text="¿ESTÁ LA LÁMPARA EN BUENAS CONDICIONES?"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <Switch
+                    android:id="@+id/switchCondicion"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="false" />
+
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -80,145 +237,26 @@
                     android:layout_width="match_parent"
                     android:layout_height="40dp" />
 
-                <!-- Text and EditText for DESCRIPCIÓN -->
+
+                <!-- Text and EditText for observacion -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:layout_marginBottom="8dp"
-                    android:text="DESCRIPCIÓN"
+                    android:text="OBSERVACIÓN"
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
                 <EditText
-                    android:id="@+id/editDescripcion"
+                    android:id="@+id/editObservacion"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:ems="10"
                     android:inputType="text" />
-
-                <!-- Text and EditText for NOMBRE CONTACTO -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:layout_marginBottom="8dp"
-                    android:text="NOMBRE CONTACTO"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <EditText
-                    android:id="@+id/editNombreContacto"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:ems="10"
-                    android:inputType="text" />
-
-                <!-- Text and EditText for CORREO CONTACTO -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:layout_marginBottom="8dp"
-                    android:text="CORREO CONTACTO"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <EditText
-                    android:id="@+id/editCorreoContacto"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:ems="10"
-                    android:inputType="text" />
-
-                <!-- Text and EditText for TELÉFONO -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:layout_marginBottom="8dp"
-                    android:text="TELÉFONO"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <EditText
-                    android:id="@+id/editTelefono"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:ems="10"
-                    android:inputType="phone" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <!-- Icon for attaching photo (left) -->
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:gravity="center">
-
-                        <ImageView
-                            android:id="@+id/btnAdjuntarFoto"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:layout_marginEnd="16dp"
-                            android:contentDescription="Adjuntar Foto"
-                            android:src="@drawable/baseline_attach_file_24" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Adjuntar Foto"
-                            android:textSize="12sp"
-                            android:layout_marginTop="4dp"
-                            android:gravity="center"
-                            android:textColor="@android:color/black" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:gravity="end">
-
-                        <ImageView
-                            android:id="@+id/btnTomarFoto"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:layout_gravity="end"
-                            android:contentDescription="Tomar Foto"
-                            android:src="@drawable/baseline_photo_camera_24" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Tomar Foto"
-                            android:textSize="12sp"
-                            android:layout_marginTop="4dp"
-                            android:gravity="center"
-                            android:textColor="@android:color/black" />
-                    </LinearLayout>
-
-
-
-                    <!-- Icon for taking photo (right) -->
-                </LinearLayout>
 
 
                 <!-- ImageView to display the selected photo -->
-                <ImageView
-                    android:id="@+id/imageViewFoto"
-                    android:layout_width="match_parent"
-                    android:layout_height="200dp"
-                    android:layout_marginTop="16dp"
-                    android:scaleType="centerCrop"
-                    android:visibility="gone" />
 
                 <!-- Send Button -->
                 <Button
@@ -228,6 +266,8 @@
                     android:text="ENVIAR" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
+
+        </LinearLayout>
     </ScrollView>
 
 </FrameLayout>

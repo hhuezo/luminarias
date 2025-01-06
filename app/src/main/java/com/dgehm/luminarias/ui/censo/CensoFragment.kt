@@ -12,7 +12,6 @@ import androidx.navigation.fragment.findNavController
 import com.dgehm.luminarias.GlobalUbicacion
 import com.dgehm.luminarias.R
 import com.dgehm.luminarias.databinding.FragmentCensoBinding
-import com.dgehm.luminarias.ui.reporte_falla.ReporteFallaIngresoFragmentDirections
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class CensoFragment : Fragment() {
@@ -45,6 +44,7 @@ class CensoFragment : Fragment() {
         GlobalUbicacion.departamentoId = 0
         GlobalUbicacion.distritoId = 0
         GlobalUbicacion.municipioId = 0
+        GlobalUbicacion.direccion = ""
 
         val usuarioId: Int? = GlobalUbicacion.usuarioId
 
@@ -52,10 +52,8 @@ class CensoFragment : Fragment() {
         val fab: FloatingActionButton = view.findViewById(R.id.fab)
 
         binding.fab.setOnClickListener {
-            // Navegar al PersonaCreateFragment
-            //findNavController().navigate(R.id.action_censoFragment_to_censoMapaFragment)
 
-            //redicreccion al reporte de falla
+            //redicreccion al mapa
             val action = CensoFragmentDirections.actionCensoFragmentToCensoMapaFragment()
             findNavController().navigate(action)
 

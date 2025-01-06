@@ -12,6 +12,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ProgressBar
+import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -64,6 +65,7 @@ class CensoMapaFragment : Fragment() , OnMapReadyCallback {
 
     private var  departamentoNombre: String? = ""
     private var  distritoNombre: String? = ""
+    private var  direccion: String? = ""
 
     private val clientGet by lazy { HttpClient(requireContext()) }
 
@@ -142,6 +144,7 @@ class CensoMapaFragment : Fragment() , OnMapReadyCallback {
                 GlobalUbicacion.departamentoId = departamentoId?.toIntOrNull() ?: 0
                 GlobalUbicacion.distritoId = distritoId?.toIntOrNull() ?: 0
                 GlobalUbicacion.municipioId = municipioId?.toIntOrNull() ?: 0
+                GlobalUbicacion.direccion = direccion
 
                 Log.d("ubicacion ","departamen $departamentoNombre id: $departamentoId , distrito $distritoNombre id: $distritoId , id municipio $municipioId")
 
@@ -196,7 +199,7 @@ class CensoMapaFragment : Fragment() , OnMapReadyCallback {
                 if (response.isSuccessful) {
                     val responseBody = response.body?.string()
 
-                    //Log.d("aa","response "+responseBody)
+                    Log.d("aa","response "+responseBody)
 
                     // Intentar convertir la respuesta JSON en un JSONObject
                     val jsonObject = JSONObject(responseBody)
@@ -204,7 +207,7 @@ class CensoMapaFragment : Fragment() , OnMapReadyCallback {
                     // Extraer los valores del estado (departamento) y municipio
                     val address = jsonObject.optJSONObject("address")
 
-                    //Log.e("API Error", "address $address")
+
 
                     val departamento = address?.optString("state")
                     val distrito = address?.optString("town")
@@ -215,6 +218,12 @@ class CensoMapaFragment : Fragment() , OnMapReadyCallback {
                     // Asignar los valores a las variables correspondientes
                     departamentoNombre = departamento
                     distritoNombre = (distrito?.toString() ?: "").trim()
+
+
+                    // Extraer el valor de "display_name"
+                    val displayName = jsonObject.getString("display_name")
+
+                    direccion = displayName
 
 
                     return@withContext "Departamento: $departamento, Municipio:  $distrito"

@@ -58,13 +58,6 @@ class ReporteFallaFragment : Fragment(), ReporteFallaAdapter.OnReporteFallaClick
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Inicializar los valores de ubicacion
-        GlobalUbicacion.latitud = null
-        GlobalUbicacion.longitud = null
-        GlobalUbicacion.departamentoId = 0
-        GlobalUbicacion.distritoId = 0
-        GlobalUbicacion.municipioId = 0
-
         val usuarioId: Int? = GlobalUbicacion.usuarioId
 
 

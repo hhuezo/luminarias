@@ -7,4 +7,5 @@ object  GlobalUbicacion {
     var distritoId: Int? = 0
     var municipioId:  Int? = 0
     var usuarioId:  Int? = 0
+    var direccion:  String? = ""
 }
