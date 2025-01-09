@@ -58,6 +58,11 @@ class ReporteFallaFragment : Fragment(), ReporteFallaAdapter.OnReporteFallaClick
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        if(GlobalUbicacion.desconectado == 1)
+        {
+
+        }
+
         val usuarioId: Int? = GlobalUbicacion.usuarioId
 
 

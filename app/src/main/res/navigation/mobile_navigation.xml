@@ -83,5 +83,14 @@
         android:id="@+id/loginFragment"
         android:name="com.dgehm.luminarias.ui.login.LoginFragment"
         android:label="fragment_login"
-        tools:layout="@layout/fragment_login" />
+        tools:layout="@layout/fragment_login" >
+        <action
+            android:id="@+id/action_loginFragment_to_sincronizarFragment"
+            app:destination="@id/sincronizarFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/sincronizarFragment"
+        android:name="com.dgehm.luminarias.ui.login.SincronizarFragment"
+        android:label="fragment_sincronizar"
+        tools:layout="@layout/fragment_sincronizar" />
 </navigation>
