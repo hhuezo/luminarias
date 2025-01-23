@@ -41,6 +41,9 @@
         <action
             android:id="@+id/action_reporteFallaFragment_to_reporteFallaMapaFragment"
             app:destination="@id/reporteFallaMapaFragment" />
+        <action
+            android:id="@+id/action_reporteFallaFragment_to_reporteFallaOfflineFragment"
+            app:destination="@id/reporteFallaOfflineFragment" />
     </fragment>
     <fragment
         android:id="@+id/reporteFallaMapaFragment"
@@ -93,4 +96,18 @@
         android:name="com.dgehm.luminarias.ui.login.SincronizarFragment"
         android:label="fragment_sincronizar"
         tools:layout="@layout/fragment_sincronizar" />
+    <fragment
+        android:id="@+id/reporteFallaOfflineFragment"
+        android:name="com.dgehm.luminarias.ui.reporte_falla_offline.ReporteFallaOfflineFragment"
+        android:label="fragment_reporte_falla_offline"
+        tools:layout="@layout/fragment_reporte_falla_offline" >
+        <action
+            android:id="@+id/action_reporteFallaOfflineFragment_to_reporteFallaIngresoOfflineFragment"
+            app:destination="@id/reporteFallaIngresoOfflineFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/reporteFallaIngresoOfflineFragment"
+        android:name="com.dgehm.luminarias.ui.reporte_falla_offline.ReporteFallaIngresoOfflineFragment"
+        android:label="fragment_reporte_falla_ingreso_offline"
+        tools:layout="@layout/fragment_reporte_falla_ingreso_offline" />
 </navigation>

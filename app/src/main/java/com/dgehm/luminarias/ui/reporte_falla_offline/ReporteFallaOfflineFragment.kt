@@ -1,13 +1,26 @@
 package com.dgehm.luminarias.ui.reporte_falla_offline
 
+import DatabaseHelper
+import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatActivity
+import androidx.navigation.fragment.findNavController
 import com.dgehm.luminarias.R
+import com.dgehm.luminarias.databinding.FragmentReporteFallaOfflineBinding
+import com.dgehm.luminarias.ui.reporte_falla.ReporteFallaIngresoFragmentDirections
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class ReporteFallaOfflineFragment : Fragment() {
+
+    private var _binding: FragmentReporteFallaOfflineBinding? = null
+    private val binding get() = _binding!!
+    private lateinit var dbHelper: DatabaseHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -18,8 +31,42 @@ class ReporteFallaOfflineFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_reporte_falla_offline, container, false)
+        _binding = FragmentReporteFallaOfflineBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        (requireActivity() as AppCompatActivity).supportActionBar?.title = "Reporte falla"
+
+        dbHelper = DatabaseHelper(requireContext())
+
+        // Obtener los reportes de falla
+        val reportesFalla = dbHelper.getReportesFalla()
+
+        // Mostrar los reportes (ejemplo: Log, RecyclerView, etc.)
+        for (reporte in reportesFalla) {
+            Log.d("ReporteFalla", "Reporte ID: ${reporte.id}, Descripción: ${reporte.descripcion}")
+        }
+
+
+        val fab: FloatingActionButton = view.findViewById(R.id.fab)
+
+        binding.fab.setOnClickListener {
+            //redicreccion al reporte de falla
+            val action = ReporteFallaOfflineFragmentDirections.actionReporteFallaOfflineFragmentToReporteFallaIngresoOfflineFragment()
+            findNavController().navigate(action)
+        }
+
+    }
+
+
+    override fun onResume() {
+        super.onResume()
+        // Cambiar el título de la ActionBar
+        (activity as? AppCompatActivity)?.supportActionBar?.title = "Reporte de falla"
     }
 
 }

@@ -19,7 +19,6 @@ import com.dgehm.luminarias.HttpClient
 import com.dgehm.luminarias.R
 import com.dgehm.luminarias.databinding.FragmentLoginBinding
 import com.dgehm.luminarias.model.ResponseLogin
-import com.dgehm.luminarias.ui.reporte_falla.ReporteFallaIngresoFragmentDirections
 import com.google.gson.Gson
 import okhttp3.Call
 import okhttp3.Callback
@@ -64,6 +63,17 @@ class LoginFragment : Fragment() {
 
         val switchOffline = binding.switchOffline
 
+        val sharedPreferences = requireContext().getSharedPreferences("Prefs", Context.MODE_PRIVATE)
+        val desconectado = sharedPreferences.getInt("desconectado", 0) // Valor por defecto -1 si no existe
+
+
+        // Configurar el estado del Switch
+        if (desconectado == 1) {
+            switchOffline.isChecked = true // Activar el Switch
+        } else {
+            switchOffline.isChecked = false // Desactivar el Switch
+        }
+
 
         if (userId != null) {
             if(userId > 0)
@@ -96,10 +106,20 @@ class LoginFragment : Fragment() {
             if (isChecked) {
                 GlobalUbicacion.desconectado = 1
 
+                // Guardar en SharedPreferences
+                val sharedPreferences = requireContext().getSharedPreferences("Prefs", Context.MODE_PRIVATE)
+                val editor = sharedPreferences.edit()
+                editor.putInt("desconectado", 1)
+                editor.apply()  // Aplicar los cambios
+
                 val toast = Toast.makeText(requireContext(), "Modo offline activado", Toast.LENGTH_LONG)
                 toast.show()
             } else {
-                GlobalUbicacion.desconectado = 0
+                // Guardar en SharedPreferences
+                val sharedPreferences = requireContext().getSharedPreferences("Prefs", Context.MODE_PRIVATE)
+                val editor = sharedPreferences.edit()
+                editor.putInt("desconectado", 0)
+                editor.apply()  // Aplicar los cambios
 
                 val toast = Toast.makeText(requireContext(), "Modo offline desactivado", Toast.LENGTH_LONG)
                 toast.show()
@@ -136,21 +156,22 @@ class LoginFragment : Fragment() {
 
             // Realizar la petición POST
             val endpoint = "/login"
+
             client.post(endpoint, json, object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
+                    requireActivity().runOnUiThread {
+                        val dialog = MaterialDialog(requireContext()).show {
+                            title(text = "Error")
+                            message(text = "Error al hacer la petición: ${e.message}")
+                            icon(R.drawable.baseline_error_24)
+                            positiveButton(text = "Aceptar")
+                        }
 
-                    val dialog = MaterialDialog(requireContext()).show {
-                        title(text = "Error")
-                        message(text = "Error al hacer la petición: ${e.message}")
-                        icon(R.drawable.baseline_error_24)
-                        positiveButton(text = "Aceptar")
+                        // Cerrar el diálogo después de 2 segundos
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            dialog.dismiss()
+                        }, 2000)
                     }
-
-                    // Cerrar el diálogo después de 2 segundos
-                    Handler(Looper.getMainLooper()).postDelayed({
-                        dialog.dismiss()
-                    }, 2000)
-
                 }
 
                 override fun onResponse(call: Call, response: Response) {
@@ -180,7 +201,6 @@ class LoginFragment : Fragment() {
                             GlobalUbicacion.usuarioId = userId
                             GlobalUbicacion.usuario = userName
 
-
                             // Guardar en SharedPreferences
                             val sharedPreferences = requireContext().getSharedPreferences("Prefs", Context.MODE_PRIVATE)
                             val editor = sharedPreferences.edit()
@@ -188,17 +208,10 @@ class LoginFragment : Fragment() {
                             editor.putString("usuario", userName)  // Guardar usuario
                             editor.apply()  // Aplicar los cambios
 
-
-
-
-                            texHome.setText("Bienvenido $userName")
-
+                            texHome.text = "Bienvenido $userName"
 
                             cardLogin.visibility = View.GONE
                             cardHome.visibility = View.VISIBLE
-                            //redicreccion al reporte de falla
-
-
                         } else {
                             val dialog = MaterialDialog(requireContext()).show {
                                 title(text = "Error")
@@ -215,6 +228,7 @@ class LoginFragment : Fragment() {
                     }
                 }
             })
+
 
         }
 

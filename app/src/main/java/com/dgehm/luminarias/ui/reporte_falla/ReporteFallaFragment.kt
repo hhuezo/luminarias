@@ -1,5 +1,6 @@
 package com.dgehm.luminarias.ui.reporte_falla
 
+import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -7,7 +8,6 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
@@ -58,9 +58,14 @@ class ReporteFallaFragment : Fragment(), ReporteFallaAdapter.OnReporteFallaClick
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        if(GlobalUbicacion.desconectado == 1)
-        {
+        val sharedPreferences = requireContext().getSharedPreferences("Prefs", Context.MODE_PRIVATE)
+        val desconectado = sharedPreferences.getInt("desconectado", 0) // Valor por defecto -1 si no existe
 
+
+        if(desconectado == 1)
+        {
+            val action = ReporteFallaFragmentDirections.actionReporteFallaFragmentToReporteFallaOfflineFragment()
+            findNavController().navigate(action)
         }
 
         val usuarioId: Int? = GlobalUbicacion.usuarioId

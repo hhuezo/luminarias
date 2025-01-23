@@ -110,7 +110,7 @@ class ReporteFallaIngresoFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        (requireActivity() as AppCompatActivity).supportActionBar?.title = "Nuevo cargo"
+        (requireActivity() as AppCompatActivity).supportActionBar?.title = "Reporte falla"
 
         // Obtener los argumentos pasados desde el fragmento anterior
         latitud = GlobalUbicacion.latitud!!
