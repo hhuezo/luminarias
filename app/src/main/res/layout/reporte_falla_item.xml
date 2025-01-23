@@ -88,32 +88,32 @@
                 android:textStyle="bold"
                 android:ellipsize="end" />
 
-            <!-- Distrito y Departamento (Horizontal) -->
-            <LinearLayout
+            <!-- Descripción del reporte -->
+            <TextView
+                android:id="@+id/distritoTextView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="4dp">
+                android:text="Distrito"
+                android:textSize="14sp"
+                android:textColor="#555555"
+                android:layout_marginTop="4dp"
+                android:maxLines="2"
+                android:ellipsize="end" />
 
-                <TextView
-                    android:id="@+id/distritoTextView"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Distrito: Sin información"
-                    android:textSize="14sp"
-                    android:textColor="#555555" />
 
-                <TextView
-                    android:id="@+id/departamentoTextView"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Departamento: Sin información"
-                    android:textSize="14sp"
-                    android:textColor="#555555"
-                    android:gravity="end" />
-            </LinearLayout>
+
+            <!-- Descripción del reporte -->
+            <TextView
+                android:id="@+id/departamentoTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Deparatmento"
+                android:textSize="14sp"
+                android:textColor="#555555"
+                android:layout_marginTop="4dp"
+                android:maxLines="2"
+                android:ellipsize="end" />
+
         </LinearLayout>
     </LinearLayout>
 </androidx.cardview.widget.CardView>

@@ -15,3 +15,16 @@ data class ReporteFallaOffline(
     val urlFoto: String?
 )
 
+
+data class ReporteFallaOfflineList(
+    val id: Long,
+    val fechaCreacion: String,
+    val descripcion: String,
+    val tipoFalla: String, // Nombre del tipo de falla
+    val distrito: String, // Nombre del distrito
+    val departamento: String, // Nombre del departamento
+    val nombreContacto: String,
+    val telefonoContacto: String
+)
+
+

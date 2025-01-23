@@ -2,6 +2,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import com.dgehm.luminarias.model.ReporteFallaOffline
+import com.dgehm.luminarias.model.ReporteFallaOfflineList
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -287,34 +288,40 @@ class DatabaseHelper(private val context: Context) {
 
 
 
-    fun getReportesFalla(): List<ReporteFallaOffline> {
-        val reportesFalla = mutableListOf<ReporteFallaOffline>()
+    fun getReportesFalla(): List<ReporteFallaOfflineList> {
+        val reportesFalla = mutableListOf<ReporteFallaOfflineList>()
 
         // Abre la base de datos en modo lectura
         val db = SQLiteDatabase.openDatabase(databasePath, null, SQLiteDatabase.OPEN_READONLY)
 
-        val query = "SELECT * FROM reporte_falla"
+        val query = "select reporte.id,strftime('%d/%m/%Y %H:%M', reporte.fecha_creacion) AS fecha,tipo.nombre as tipoFalla,  reporte.nombre_contacto as nombreContacto,reporte.telefono_contacto as telefonoContacto,reporte.descripcion,\n" +
+                "distrito.nombre as distrito,departamento.nombre as departamento from reporte_falla reporte \n" +
+                "inner join distrito on distrito.id = reporte.distrito_id\n" +
+                "inner join municipio  on municipio.id = distrito.municipio_id\n" +
+                "inner join departamento  on departamento.id = municipio.departamento_id\n" +
+                "inner join tipo_falla tipo on tipo.id = reporte.tipo_falla_id"
         val cursor = db.rawQuery(query, null)
 
         if (cursor.moveToFirst()) {
             do {
                 val id = cursor.getLong(cursor.getColumnIndexOrThrow("id"))
-                val fechaCreacion = cursor.getString(cursor.getColumnIndexOrThrow("fecha_creacion"))
-                val distritoId = cursor.getInt(cursor.getColumnIndexOrThrow("distrito_id"))
-                val tipoFallaId = cursor.getInt(cursor.getColumnIndexOrThrow("tipo_falla_id"))
+                val fechaCreacion = cursor.getString(cursor.getColumnIndexOrThrow("fecha")) ?: ""
+                val tipoFalla = cursor.getString(cursor.getColumnIndexOrThrow("tipoFalla"))
+                val nombreContacto = cursor.getString(cursor.getColumnIndexOrThrow("nombreContacto"))
+                val telefonoContacto = cursor.getString(cursor.getColumnIndexOrThrow("telefonoContacto"))
                 val descripcion = cursor.getString(cursor.getColumnIndexOrThrow("descripcion"))
-                val latitud = cursor.getString(cursor.getColumnIndexOrThrow("latitud"))
-                val longitud = cursor.getString(cursor.getColumnIndexOrThrow("longitud"))
-                val telefonoContacto = cursor.getString(cursor.getColumnIndexOrThrow("telefono_contacto"))
-                val nombreContacto = cursor.getString(cursor.getColumnIndexOrThrow("nombre_contacto"))
-                val correoContacto = cursor.getString(cursor.getColumnIndexOrThrow("correo_contacto"))
-                val usuarioCreacion = cursor.getInt(cursor.getColumnIndexOrThrow("usuario_creacion"))
-                val urlFoto = cursor.getString(cursor.getColumnIndexOrThrow("url_foto"))
+                val distrito = cursor.getString(cursor.getColumnIndexOrThrow("distrito"))
+                val departamento = cursor.getString(cursor.getColumnIndexOrThrow("departamento"))
 
-                val reporteFalla = ReporteFallaOffline(
-                    id, fechaCreacion, distritoId, tipoFallaId, descripcion,
-                    latitud, longitud, telefonoContacto, nombreContacto,
-                    correoContacto, usuarioCreacion, urlFoto
+                val reporteFalla = ReporteFallaOfflineList(
+                    id = id,
+                    fechaCreacion = fechaCreacion,
+                    descripcion = descripcion,
+                    tipoFalla = tipoFalla,
+                    distrito = distrito,
+                    departamento = departamento,
+                    nombreContacto = nombreContacto,
+                    telefonoContacto = telefonoContacto
                 )
 
                 reportesFalla.add(reporteFalla)

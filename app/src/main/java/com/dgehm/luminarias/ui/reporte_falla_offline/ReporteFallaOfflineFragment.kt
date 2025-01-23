@@ -11,8 +11,11 @@ import android.view.ViewGroup
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.dgehm.luminarias.R
 import com.dgehm.luminarias.databinding.FragmentReporteFallaOfflineBinding
+import com.dgehm.luminarias.model.ReporteFallaOfflineAdapter
 import com.dgehm.luminarias.ui.reporte_falla.ReporteFallaIngresoFragmentDirections
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
@@ -50,6 +53,12 @@ class ReporteFallaOfflineFragment : Fragment() {
         for (reporte in reportesFalla) {
             Log.d("ReporteFalla", "Reporte ID: ${reporte.id}, Descripción: ${reporte.descripcion}")
         }
+
+
+        // Configurar el RecyclerView
+        val recyclerView: RecyclerView = view.findViewById(R.id.recyclerView)
+        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        recyclerView.adapter = ReporteFallaOfflineAdapter(reportesFalla)
 
 
         val fab: FloatingActionButton = view.findViewById(R.id.fab)
