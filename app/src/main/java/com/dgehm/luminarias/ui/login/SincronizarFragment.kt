@@ -4,6 +4,8 @@ import DatabaseHelper
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -26,6 +28,7 @@ import okhttp3.Response
 import org.json.JSONObject
 import java.io.IOException
 import android.util.Base64
+import android.widget.ProgressBar
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -65,6 +68,11 @@ class SincronizarFragment : Fragment() {
 
 
 
+        val loadingProgressBar: ProgressBar = binding.progressBar
+        //loadingProgressBar.visibility = View.VISIBLE
+
+
+
         btnReiniciar.setOnClickListener {
 
             context?.let { nonNullContext ->
@@ -99,45 +107,33 @@ class SincronizarFragment : Fragment() {
         }
 
 
+       /* btnSincronizar.setOnClickListener */
+
+
         btnSincronizar.setOnClickListener {
-            // Asegúrate de que el contexto no sea nulo
             context?.let { nonNullContext ->
 
-                // Verificar si la base de datos existe
                 if (dbHelper.databaseExists()) {
                     println("Base de datos existente.")
 
-
-                    // Obtener los reportes de falla
                     val reportesFalla = dbHelper.getReportesFalla()
-                    // Mostrar los reportes (ejemplo: Log, RecyclerView, etc.)
+                    val totalReportes = reportesFalla.size
+                    var enviadosCorrectos = 0
+                    var enviadosErroneos = 0
+
+                    // Mostrar el ProgressBar
+                    loadingProgressBar.visibility = View.VISIBLE
+
                     for (reporte in reportesFalla) {
-
-
-
-                        val base64String: String?
-
-                        if (reporte.tipoImagen == "1") {
-                            val uri = Uri.parse(reporte.urlFoto)
-                            base64String = convertirImagenUriABase64(requireContext(), uri)
-                        } else if (reporte.tipoImagen == "2") {
-                            base64String = convertirFotoUriABase64(requireContext(),
-                                Uri.parse(reporte.urlFoto).toString()
-                            )
-                        } else {
-                            base64String = null
+                        val base64String: String? = when (reporte.tipoImagen) {
+                            "1" -> convertirImagenUriABase64(requireContext(), Uri.parse(reporte.urlFoto))
+                            "2" -> convertirFotoUriABase64(requireContext(), Uri.parse(reporte.urlFoto).toString())
+                            else -> null
                         }
 
-                        Log.d("ReporteFalla", "Reporte ID: ${base64String}")
-
-
                         val json = JSONObject().apply {
-                            put(
-                                "distrito_id", reporte.distritoId
-                            ) // Si 'distrito' es un nombre, asegúrate de que 'distritoId' esté disponible
-                            put(
-                                "tipo_falla_id", reporte.tipoFallaId
-                            ) // Asegúrate de que tipoFalla sea el ID del tipo de falla
+                            put("distrito_id", reporte.distritoId)
+                            put("tipo_falla_id", reporte.tipoFallaId)
                             put("descripcion", reporte.descripcion)
                             put("latitud", reporte.latitud)
                             put("longitud", reporte.longitud)
@@ -149,80 +145,56 @@ class SincronizarFragment : Fragment() {
                             put("imagen", base64String)
                         }
 
-
                         // Realizar la petición POST
                         val endpoint = "/api_reporte_falla/sincronizar"
                         client.post(endpoint, json.toString(), object : Callback {
                             override fun onFailure(call: Call, e: IOException) {
+                                enviadosErroneos++
+                                Log.e("SyncError", "Error al enviar reporte ID ${reporte.id}: ${e.message}")
 
-                                val dialog = MaterialDialog(requireContext()).show {
-                                    title(text = "Error")
-                                    message(text = "Error al hacer la petición: ${e.message}")
-                                    icon(R.drawable.baseline_error_24)
-                                    positiveButton(text = "Aceptar")
+                                requireActivity().runOnUiThread {
+                                    MaterialDialog(requireContext()).show {
+                                        title(text = "Error")
+                                        message(text = "Error al hacer la petición: ${e.message}")
+                                        icon(R.drawable.baseline_error_24)
+                                        positiveButton(text = "Aceptar")
+                                    }
                                 }
 
-                                // Cerrar el diálogo después de 2 segundos
-                                Handler(Looper.getMainLooper()).postDelayed({
-                                    dialog.dismiss()
-                                }, 2000)
-
+                                verificarFinalizacion(totalReportes, enviadosCorrectos, enviadosErroneos)
                             }
 
                             override fun onResponse(call: Call, response: Response) {
-                                val responseData = response.body?.string()
-                                Log.d("Response", responseData ?: "No se recibió ninguna respuesta")
-
                                 requireActivity().runOnUiThread {
                                     if (response.isSuccessful) {
-                                        val reportesFalla =   dbHelper.deleteReporteFallaById(reporte.id)
-
+                                        enviadosCorrectos++
+                                        dbHelper.deleteReporteFallaById(reporte.id)
 
                                         if (reporte.tipoImagen == "2") {
-                                            val uri = Uri.parse(reporte.urlFoto) // Convertir String a Uri
-                                            eliminarArchivo(requireContext(), uri) // Pasar el contexto y la URI
+                                            val uri = Uri.parse(reporte.urlFoto)
+                                            eliminarArchivo(requireContext(), uri)
                                         }
-
-
-
-
                                     } else {
-                                        val dialog = MaterialDialog(requireContext()).show {
-                                            title(text = "Error")
-                                            message(text = "Error al enviar los datos")
-                                            icon(R.drawable.baseline_error_24)
-                                            positiveButton(text = "Aceptar")
-                                        }
-
-                                        // Cerrar el diálogo después de 2 segundos
-                                        Handler(Looper.getMainLooper()).postDelayed({
-                                            dialog.dismiss()
-                                        }, 2000)
+                                        enviadosErroneos++
+                                        Log.e("SyncError", "Error en respuesta para reporte ID ${reporte.id}")
                                     }
+
+                                    verificarFinalizacion(totalReportes, enviadosCorrectos, enviadosErroneos)
                                 }
                             }
                         })
-
-                        Log.d("body ", "body $json")
                     }
-
-
-
                 } else {
                     dbHelper.copyDatabase()
-                    Toast.makeText(
-                        nonNullContext, "Base de datos creó exitosamente.", Toast.LENGTH_SHORT
-                    ).show()
+                    Toast.makeText(nonNullContext, "Base de datos creada exitosamente.", Toast.LENGTH_SHORT).show()
                 }
-
-                // Copiar la nueva base de datos
-                //dbHelper.copyDatabase()
-
             } ?: run {
-                // En caso de que `context` sea nulo, maneja el error aquí
                 Toast.makeText(requireContext(), "El contexto es nulo", Toast.LENGTH_SHORT).show()
             }
         }
+
+
+
 
 
 
@@ -238,23 +210,47 @@ class SincronizarFragment : Fragment() {
             return null
         }
 
-        val uri = android.net.Uri.parse(uriString)
+        val uri = Uri.parse(uriString)
         Log.d("Base64Conversion", "Intentando convertir la imagen desde la URI: $uri")
 
         return try {
-            context.contentResolver.openInputStream(uri)?.use { inputStream ->
-                val outputStream = ByteArrayOutputStream()
-                val buffer = ByteArray(4096)
-                var bytesRead: Int
+            val inputStream = context.contentResolver.openInputStream(uri)
+            val originalBitmap = BitmapFactory.decodeStream(inputStream)
 
-                while (inputStream.read(buffer).also { bytesRead = it } != -1) {
-                    outputStream.write(buffer, 0, bytesRead)
-                }
-
-                val base64String = Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT)
-                Log.d("Base64Conversion", "Imagen convertida a Base64 con éxito")
-                base64String
+            if (originalBitmap == null) {
+                Log.e("Base64Error", "No se pudo decodificar la imagen.")
+                return null
             }
+
+            // Redimensionar imagen (máximo 800x800)
+            val maxSize = 800
+            val width = originalBitmap.width
+            val height = originalBitmap.height
+            val scaleFactor = minOf(maxSize.toFloat() / width, maxSize.toFloat() / height)
+            val resizedBitmap = Bitmap.createScaledBitmap(
+                originalBitmap,
+                (width * scaleFactor).toInt(),
+                (height * scaleFactor).toInt(),
+                true
+            )
+
+            // Convertir imagen a Base64 sin comprimir para verificar el tamaño
+            val outputStream = ByteArrayOutputStream()
+            resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+            val base64String = Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT)
+
+            // Verificar si el tamaño es mayor a 1MB
+            if (outputStream.size() > 1024 * 1024) { // 1MB en bytes
+                // Si el tamaño es mayor a 1MB, comprimir con calidad reducida (70%)
+                Log.d("Base64Conversion", "La imagen es mayor a 1MB, comprimiendo calidad a 70%")
+                outputStream.reset()
+                resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 70, outputStream)
+            }
+
+            // Convertir a Base64 con la posible compresión
+            val finalBase64String = Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT)
+            Log.d("Base64Conversion", "Imagen convertida a Base64 con éxito")
+            finalBase64String
         } catch (e: IOException) {
             Log.e("Base64Error", "Error al convertir la imagen: ${e.message}")
             e.printStackTrace()
@@ -262,22 +258,64 @@ class SincronizarFragment : Fragment() {
         }
     }
 
+
+
     // Función para convertir una imagen de la galeria en Base64
     fun convertirImagenUriABase64(context: Context, uri: Uri): String? {
         return try {
+            // Abrir el InputStream desde la URI
             val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
-            val bytes = inputStream?.readBytes()
+
+            // Decodificar la imagen en un Bitmap
+            val bitmap = BitmapFactory.decodeStream(inputStream)
             inputStream?.close()
-            if (bytes != null) {
-                Base64.encodeToString(bytes, Base64.DEFAULT)
-            } else {
-                null
-            }
+
+            // Establecer un tamaño máximo para la imagen
+            val maxWidth = 800 // Ancho máximo inicial
+            val maxHeight = 600 // Alto máximo inicial
+
+            // Calcular el factor de escala manteniendo las proporciones
+            val originalWidth = bitmap.width
+            val originalHeight = bitmap.height
+            val scaleFactor = Math.min(maxWidth.toFloat() / originalWidth, maxHeight.toFloat() / originalHeight)
+
+            // Redimensionar la imagen manteniendo las proporciones
+            var resizedBitmap = Bitmap.createScaledBitmap(
+                bitmap,
+                (originalWidth * scaleFactor).toInt(),
+                (originalHeight * scaleFactor).toInt(),
+                true
+            )
+
+            // Comprimir la imagen en formato JPEG y verificar su tamaño
+            var byteArrayOutputStream = ByteArrayOutputStream()
+            var quality = 100 // Comenzar con la calidad máxima
+
+            do {
+                // Comprimir la imagen a la calidad actual
+                byteArrayOutputStream.reset() // Limpiar el flujo de bytes
+                resizedBitmap.compress(Bitmap.CompressFormat.JPEG, quality, byteArrayOutputStream)
+
+                // Verificar el tamaño de la imagen
+                val imageBytes = byteArrayOutputStream.toByteArray()
+
+                if (imageBytes.size > 1024 * 1024) { // Si la imagen es mayor que 1MB
+                    quality -= 10 // Reducir la calidad
+                } else {
+                    break // Salir si el tamaño es menor o igual a 1MB
+                }
+            } while (quality > 10) // Limitar la calidad mínima para evitar demasiado deterioro
+
+            // Convertir la imagen comprimida a Base64
+            Base64.encodeToString(byteArrayOutputStream.toByteArray(), Base64.DEFAULT)
+
         } catch (e: IOException) {
             e.printStackTrace()
             null
         }
     }
+
+
 
 
 
@@ -362,6 +400,40 @@ class SincronizarFragment : Fragment() {
 
 
 
+
+    /**
+     * Función para verificar si ya se han procesado todos los reportes y mostrar un mensaje adecuado.
+     */
+    private fun verificarFinalizacion(total: Int, correctos: Int, errores: Int) {
+        if (correctos + errores == total) {
+
+            requireActivity().runOnUiThread {
+                val loadingProgressBar: ProgressBar = binding.progressBar
+                loadingProgressBar.visibility = View.GONE
+                when {
+                    correctos == total -> {
+                        Toast.makeText(requireContext(), "Todos los datos se enviaron correctamente", Toast.LENGTH_LONG).show()
+                    }
+                    errores == total -> {
+                        MaterialDialog(requireContext()).show {
+                            title(text = "Error")
+                            message(text = "Ningún dato se pudo enviar. Verifica tu conexión.")
+                            icon(R.drawable.baseline_error_24)
+                            positiveButton(text = "Aceptar")
+                        }
+                    }
+                    else -> {
+                        MaterialDialog(requireContext()).show {
+                            title(text = "Envío Parcial")
+                            message(text = "Algunos datos no se enviaron. $correctos enviados correctamente, $errores con error.")
+                            icon(R.drawable.baseline_error_24)
+                            positiveButton(text = "Aceptar")
+                        }
+                    }
+                }
+            }
+        }
+    }
 
 
 }
