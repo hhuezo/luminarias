@@ -139,6 +139,10 @@ class ReporteFallaMapaFragment : Fragment(), OnMapReadyCallback {
                     }
                 }
 
+                GlobalUbicacion.departamentoId = departamentoId?.toIntOrNull()
+                GlobalUbicacion.municipioId = municipioId?.toIntOrNull()
+                GlobalUbicacion.distritoId = distritoId?.toIntOrNull()
+
                 Log.d("ubicacion ","departamen $departamentoNombre id: $departamentoId , distrito $distritoNombre id: $distritoId , id municipio $municipioId")
 
                 navigateToReporteFallaIngresoFragment()

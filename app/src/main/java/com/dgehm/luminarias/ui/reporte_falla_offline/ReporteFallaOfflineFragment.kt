@@ -47,7 +47,7 @@ class ReporteFallaOfflineFragment : Fragment() {
         dbHelper = DatabaseHelper(requireContext())
 
         // Obtener los reportes de falla
-        val reportesFalla = dbHelper.getReportesFalla()
+        val reportesFalla = dbHelper.getLIstarReportesFalla()
 
         // Mostrar los reportes (ejemplo: Log, RecyclerView, etc.)
         for (reporte in reportesFalla) {

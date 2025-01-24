@@ -122,6 +122,8 @@ class ReporteFallaIngresoFragment : Fragment() {
 
 
 
+
+
         val departamentoSpinner: Spinner? = view.findViewById(R.id.departamentoSpinner)
         val tipoFallaSpinner: Spinner? = view.findViewById(R.id.spinnerTipoFalla)
         val municipioSpinner: Spinner? = view.findViewById(R.id.spinnerMunicipio)

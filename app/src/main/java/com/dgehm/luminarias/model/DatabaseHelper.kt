@@ -257,7 +257,8 @@ class DatabaseHelper(private val context: Context) {
         nombreContacto: String,
         correoContacto: String,
         usuarioId: Int,
-        photoUri: String?
+        photoUri: String?,
+        tipoImagen: String?
     ): Long {
         val db = SQLiteDatabase.openDatabase(databasePath, null, SQLiteDatabase.OPEN_READWRITE)
 
@@ -276,6 +277,7 @@ class DatabaseHelper(private val context: Context) {
             put("correo_contacto", correoContacto)
             put("usuario_creacion", usuarioId)
             put("url_foto", photoUri)
+            put("tipo_imagen", tipoImagen)
         }
 
         // Insertar en la tabla 'reporte_falla' y obtener el ID de la fila insertada
@@ -287,14 +289,14 @@ class DatabaseHelper(private val context: Context) {
 
 
 
-
-    fun getReportesFalla(): List<ReporteFallaOfflineList> {
+    //metodo para listar reportes de falla
+    fun getLIstarReportesFalla(): List<ReporteFallaOfflineList> {
         val reportesFalla = mutableListOf<ReporteFallaOfflineList>()
 
         // Abre la base de datos en modo lectura
         val db = SQLiteDatabase.openDatabase(databasePath, null, SQLiteDatabase.OPEN_READONLY)
 
-        val query = "select reporte.id,strftime('%d/%m/%Y %H:%M', reporte.fecha_creacion) AS fecha,tipo.nombre as tipoFalla,  reporte.nombre_contacto as nombreContacto,reporte.telefono_contacto as telefonoContacto,reporte.descripcion,\n" +
+        val query = "select reporte.id,strftime('%d/%m/%Y %H:%M', reporte.fecha_creacion) AS fecha,tipo.nombre as tipoFalla,  reporte.nombre_contacto as nombreContacto,reporte.telefono_contacto as telefonoContacto,reporte.url_foto  as descripcion,\n" +
                 "distrito.nombre as distrito,departamento.nombre as departamento from reporte_falla reporte \n" +
                 "inner join distrito on distrito.id = reporte.distrito_id\n" +
                 "inner join municipio  on municipio.id = distrito.municipio_id\n" +
@@ -337,5 +339,55 @@ class DatabaseHelper(private val context: Context) {
 
 
 
+    fun getReportesFalla(): List<ReporteFallaOffline> {
+        val reportesFalla = mutableListOf<ReporteFallaOffline>()
+        // Abre la base de datos en modo lectura
+        val db = SQLiteDatabase.openDatabase(databasePath, null, SQLiteDatabase.OPEN_READONLY)
+        val query = "SELECT * FROM reporte_falla"
+        val cursor = db.rawQuery(query, null)
+        if (cursor.moveToFirst()) {
+            do {
+                val id = cursor.getLong(cursor.getColumnIndexOrThrow("id"))
+                val fechaCreacion = cursor.getString(cursor.getColumnIndexOrThrow("fecha_creacion"))
+                val distritoId = cursor.getInt(cursor.getColumnIndexOrThrow("distrito_id"))
+                val tipoFallaId = cursor.getInt(cursor.getColumnIndexOrThrow("tipo_falla_id"))
+                val descripcion = cursor.getString(cursor.getColumnIndexOrThrow("descripcion"))
+                val latitud = cursor.getString(cursor.getColumnIndexOrThrow("latitud"))
+                val longitud = cursor.getString(cursor.getColumnIndexOrThrow("longitud"))
+                val telefonoContacto = cursor.getString(cursor.getColumnIndexOrThrow("telefono_contacto"))
+                val nombreContacto = cursor.getString(cursor.getColumnIndexOrThrow("nombre_contacto"))
+                val correoContacto = cursor.getString(cursor.getColumnIndexOrThrow("correo_contacto"))
+                val usuarioCreacion = cursor.getInt(cursor.getColumnIndexOrThrow("usuario_creacion"))
+                val urlFoto = cursor.getString(cursor.getColumnIndexOrThrow("url_foto"))
+                val tipoImagen = cursor.getString(cursor.getColumnIndexOrThrow("tipo_imagen"))
+                val reporteFalla = ReporteFallaOffline(
+                    id, fechaCreacion, distritoId, tipoFallaId, descripcion,
+                    latitud, longitud, telefonoContacto, nombreContacto,
+                    correoContacto, usuarioCreacion, urlFoto, tipoImagen
+                )
+                reportesFalla.add(reporteFalla)
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        db.close()
+        return reportesFalla
+    }
+
+
+    fun deleteReporteFallaById(id: Long) {
+        val db = SQLiteDatabase.openDatabase(databasePath, null, SQLiteDatabase.OPEN_READWRITE)
+        val query = "DELETE FROM reporte_falla WHERE id = ?"
+        val statement = db.compileStatement(query)
+        statement.bindLong(1, id)
+        statement.executeUpdateDelete()
+        db.close()
+    }
+
+
+
+
+
+
+    //
 
 }

@@ -109,5 +109,9 @@
         android:id="@+id/reporteFallaIngresoOfflineFragment"
         android:name="com.dgehm.luminarias.ui.reporte_falla_offline.ReporteFallaIngresoOfflineFragment"
         android:label="fragment_reporte_falla_ingreso_offline"
-        tools:layout="@layout/fragment_reporte_falla_ingreso_offline" />
+        tools:layout="@layout/fragment_reporte_falla_ingreso_offline" >
+        <action
+            android:id="@+id/action_reporteFallaIngresoOfflineFragment_to_reporteFallaOfflineFragment"
+            app:destination="@id/reporteFallaOfflineFragment" />
+    </fragment>
 </navigation>

@@ -12,7 +12,8 @@ data class ReporteFallaOffline(
     val nombreContacto: String,
     val correoContacto: String,
     val usuarioCreacion: Int,
-    val urlFoto: String?
+    val urlFoto: String?,
+    val tipoImagen : String?,
 )
 
 

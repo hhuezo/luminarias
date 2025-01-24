@@ -46,6 +46,7 @@ import android.location.Location
 import android.location.LocationListener
 import android.widget.ImageButton
 import android.widget.ProgressBar
+import androidx.navigation.fragment.findNavController
 
 
 class ReporteFallaIngresoOfflineFragment : Fragment() {
@@ -67,6 +68,7 @@ class ReporteFallaIngresoOfflineFragment : Fragment() {
     private var distritoId: Int = 0
     private var municipioId: Int = 0
     private var tipoFallaId: Int = 0
+    private var tipoImagen: String? = null
 
     private lateinit var editLatitude: EditText
     private lateinit var editLongitude: EditText
@@ -439,12 +441,16 @@ class ReporteFallaIngresoOfflineFragment : Fragment() {
                 nombreContacto,
                 correoContacto,
                 usuarioId,
-                photoUri.toString()
+                photoUri.toString(),
+                tipoImagen
             )
 
             // Verificar si la inserción fue exitosa
             if (newRowId != -1L) {
                 Toast.makeText(requireContext(), "Registro guardado correctamente", Toast.LENGTH_SHORT).show()
+                //redicreccion al reporte de falla
+                val action = ReporteFallaIngresoOfflineFragmentDirections.actionReporteFallaIngresoOfflineFragmentToReporteFallaOfflineFragment()
+                findNavController().navigate(action)
             } else {
                 Toast.makeText(requireContext(), "Error al guardar el registro", Toast.LENGTH_SHORT).show()
             }
@@ -559,6 +565,7 @@ class ReporteFallaIngresoOfflineFragment : Fragment() {
                 PICK_IMAGE_REQUEST -> {
                     data?.data?.let { uri ->
                         photoUri = uri
+                        tipoImagen = "1"
                         imageViewFoto.setImageURI(uri)
                         // Hacer visible el ImageView
                         imageViewFoto.visibility = View.VISIBLE
@@ -569,6 +576,7 @@ class ReporteFallaIngresoOfflineFragment : Fragment() {
                 CAMERA_REQUEST -> {
                     photoUri?.let { uri ->
                         imageViewFoto.setImageURI(uri)
+                        tipoImagen = "2"
                         // Hacer visible el ImageView
                         imageViewFoto.visibility = View.VISIBLE
                     }

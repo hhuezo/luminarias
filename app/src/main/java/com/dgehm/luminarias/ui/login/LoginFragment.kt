@@ -58,13 +58,15 @@ class LoginFragment : Fragment() {
         val cardHome = binding.cardHome
         val texHome = binding.texHome
 
-        val userName = GlobalUbicacion.usuario
-        val userId: Int? = GlobalUbicacion.usuarioId
+        var userName = GlobalUbicacion.usuario
+        var userId: Int? = GlobalUbicacion.usuarioId
 
         val switchOffline = binding.switchOffline
 
         val sharedPreferences = requireContext().getSharedPreferences("Prefs", Context.MODE_PRIVATE)
         val desconectado = sharedPreferences.getInt("desconectado", 0) // Valor por defecto -1 si no existe
+        val usuarioIdPreferences = sharedPreferences.getInt("usuarioId", 0) // Valor por defecto -1 si no existe
+        val usuarioPreferences = sharedPreferences.getString("usuario", "")
 
 
         // Configurar el estado del Switch
@@ -72,6 +74,14 @@ class LoginFragment : Fragment() {
             switchOffline.isChecked = true // Activar el Switch
         } else {
             switchOffline.isChecked = false // Desactivar el Switch
+        }
+
+        if (usuarioIdPreferences != 0)
+        {
+            GlobalUbicacion.usuarioId = usuarioIdPreferences
+            GlobalUbicacion.usuario = usuarioPreferences
+            userId = usuarioIdPreferences
+            userName = usuarioPreferences
         }
 
 
