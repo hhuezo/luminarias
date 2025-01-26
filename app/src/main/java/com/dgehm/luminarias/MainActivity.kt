@@ -63,7 +63,12 @@ class MainActivity : AppCompatActivity() {
         navView.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.reporteFallaFragment, R.id.reporteFallaOfflineFragment -> {
-                    navController.navigate(item.itemId)
+                    val fragmentToNavigate = if (desconectado == 1) {
+                        R.id.reporteFallaOfflineFragment  // Navegar al fragmento offline si desconectado es 1
+                    } else {
+                        R.id.reporteFallaFragment  // Navegar al fragmento normal si desconectado no es 1
+                    }
+                    navController.navigate(fragmentToNavigate)
                     true
                 }
                 R.id.censoFragment, R.id.censoOfflineFragment -> {

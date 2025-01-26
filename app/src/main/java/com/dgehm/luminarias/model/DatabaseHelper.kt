@@ -345,6 +345,32 @@ class DatabaseHelper(private val context: Context) {
     }
 
 
+    fun getConteoPotencias(id: Int): Int {
+        var conteo = 0
+
+        // Abre la base de datos en modo lectura
+        val db = SQLiteDatabase.openDatabase(databasePath, null, SQLiteDatabase.OPEN_READONLY)
+
+        // Consulta para obtener el conteo de registros donde el tipo_luminaria_id coincida con el id
+        val query = "SELECT count(*) as conteo FROM potencia_promedio WHERE tipo_luminaria_id = $id"
+
+        // Ejecutar la consulta
+        val cursor = db.rawQuery(query, null)
+
+        // Si el cursor tiene resultados, obtenemos el conteo
+        if (cursor.moveToFirst()) {
+            conteo = cursor.getInt(cursor.getColumnIndexOrThrow("conteo"))
+        }
+
+        cursor.close()
+        db.close()
+
+        return conteo
+    }
+
+
+
+
     fun getPotenciaId(potencia: String, tipoLuminariaId: Int): Int {
         var registroId = 0
 

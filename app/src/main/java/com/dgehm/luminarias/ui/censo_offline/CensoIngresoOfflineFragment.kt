@@ -291,11 +291,15 @@ class CensoIngresoOfflineFragment : Fragment() {
                     val tipoLuminariaIdSeleccionado = dbHelper.getTipoLuminariaId(selectedTipoLuminaria)
                     tipoLuminariaId = tipoLuminariaIdSeleccionado
 
+                    val conteoPotencias = dbHelper.getConteoPotencias(tipoLuminariaId)
+
+                    //Toast.makeText(requireContext(), "conteo. $conteoPotencias", Toast.LENGTH_SHORT).show()
+
                     getPotencia(tipoLuminariaId)
 
 
                     requireActivity().runOnUiThread {
-                        if (tipoLuminariaId == 1) {
+                        if (tipoLuminariaId == 1 || conteoPotencias == 0) {
                             // Usa View.VISIBLE en lugar de view.VISIBLE
                             potenciaPromedioSpinner?.visibility = View.GONE
                             editPotenciaNominal.visibility = View.VISIBLE
@@ -346,7 +350,7 @@ class CensoIngresoOfflineFragment : Fragment() {
             }
 
             override fun afterTextChanged(s: Editable?) {
-                if (tipoLuminariaId == 1) {
+               // if (tipoLuminariaId == 1) {
                     // Convertir el texto a String y luego a Double
                     val potenciaText = s?.toString() ?: "" // Usamos `s` directamente
                     val potencia: Double = potenciaText.toDoubleOrNull() ?: 0.0 // Convierte o asigna 0.0
@@ -355,7 +359,7 @@ class CensoIngresoOfflineFragment : Fragment() {
                     val consumo = (potencia * 360) / 1000
 
                     editConsumoMensual.setText(consumo.toString())
-                }
+                //}
             }
 
         })
