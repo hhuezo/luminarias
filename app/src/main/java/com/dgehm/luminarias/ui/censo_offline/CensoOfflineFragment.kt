@@ -16,8 +16,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.dgehm.luminarias.R
 import com.dgehm.luminarias.databinding.FragmentCensoOfflineBinding
 import com.dgehm.luminarias.model.CensoOfflineAdapter
-import com.dgehm.luminarias.model.ReporteFallaOfflineAdapter
-import com.dgehm.luminarias.ui.reporte_falla_offline.ReporteFallaOfflineFragmentDirections
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 

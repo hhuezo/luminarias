@@ -33,14 +33,20 @@ class CensoOfflineAdapter(
 
     override fun onBindViewHolder(holder: CensoOfflineViewHolder, position: Int) {
         val censo = censos[position]
-        holder.tvNombreLuminaria.text = "Luminaria: ${censo.nombreLuminaria}"
+        holder.tvNombreLuminaria.text = "Tipo luminaria: ${censo.nombreLuminaria}"
         holder.tvFecha.text = "Fecha: ${censo.fecha}"
-        holder.tvPotenciaNominal.text = "Potencia Nominal: ${censo.potenciaNominal}W"
+        holder.tvPotenciaNominal.text = "Potencia: ${censo.potenciaNominal}W"
         holder.tvConsumoMensual.text = "Consumo Mensual: ${censo.consumoMensual} kWh"
         holder.tvDireccion.text = "Dirección: ${censo.direccion}"
         holder.tvObservacion.text = "Observación: ${censo.observacion}"
-        holder.tvNombreFalla.text = "Falla: ${censo.nombreFalla}"
-        holder.tvCondicionLampara.text = "Condición Lámpara: ${censo.condicionLampara}"
+        if (censo.nombreFalla.isNotEmpty()) {
+            holder.tvNombreFalla.text = "Falla: ${censo.nombreFalla}"
+            holder.tvNombreFalla.visibility = View.VISIBLE
+        } else {
+            holder.tvNombreFalla.visibility = View.GONE
+        }
+        val condicion = if (censo.condicionLampara == 1) "SI" else "NO"
+        holder.tvCondicionLampara.text = "La lámpara está en buenas condiciones? $condicion"
         holder.tvNombreCompania.text = "Compañía: ${censo.nombreCompania}"
         holder.tvDistrito.text = "DISTRITO: ${censo.nombreDistrito}"
         holder.tvDepartamento.text = "DEPARTAMENTO: ${censo.nombreDepartamento}"
