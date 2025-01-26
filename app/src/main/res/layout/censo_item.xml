@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="4dp"
+    android:background="#FFFFFF">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <!-- Franja de color según el estado -->
+        <View
+            android:id="@+id/estadoView"
+            android:layout_width="8dp"
+            android:layout_height="match_parent"
+            android:background="#FFA500" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="12dp">
+
+            <!-- ID -->
+
+            <!-- Nombre de la Luminaria -->
+            <TextView
+                android:id="@+id/nombreLuminariaTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Luminaria: Sin nombre"
+                android:textSize="14sp"
+                android:textColor="#555555"
+                android:layout_marginTop="4dp" />
+
+            <!-- Fecha -->
+            <TextView
+                android:id="@+id/fechaTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Fecha: 01/01/2024"
+                android:textSize="14sp"
+                android:textColor="#555555"
+                android:layout_marginTop="4dp" />
+
+            <!-- Potencia Nominal -->
+            <TextView
+                android:id="@+id/potenciaNominalTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Potencia Nominal: 0W"
+                android:textSize="14sp"
+                android:textColor="#555555"
+                android:layout_marginTop="4dp" />
+
+            <!-- Consumo Mensual -->
+            <TextView
+                android:id="@+id/consumoMensualTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Consumo Mensual: 0 kWh"
+                android:textSize="14sp"
+                android:textColor="#555555"
+                android:layout_marginTop="4dp" />
+
+            <!-- Dirección -->
+            <TextView
+                android:id="@+id/direccionTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Dirección: Sin dirección"
+                android:textColor="#555555"
+                android:textSize="14sp"
+                android:visibility="gone" />
+
+            <!-- Observación -->
+            <TextView
+                android:id="@+id/observacionTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Observación: Sin observación"
+                android:textColor="#555555"
+                android:textSize="14sp"
+                android:visibility="gone" />
+
+            <!-- Nombre de la Falla -->
+            <TextView
+                android:id="@+id/nombreFallaTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Falla: Sin nombre"
+                android:textColor="#555555"
+                android:textSize="14sp"
+                android:visibility="gone" />
+
+            <!-- Condición de la Lámpara -->
+            <TextView
+                android:id="@+id/condicionLamparaTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Condición Lámpara: 0"
+                android:textColor="#555555"
+                android:textSize="14sp"
+                android:visibility="gone" />
+
+            <!-- Nombre de la Compañía -->
+            <TextView
+                android:id="@+id/nombreCompaniaTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Compañía: Sin nombre"
+                android:textSize="14sp"
+                android:textColor="#555555"
+                android:layout_marginTop="4dp" />
+
+            <!-- Distrito -->
+            <TextView
+                android:id="@+id/distritoTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Distrito: Sin distrito"
+                android:textSize="14sp"
+                android:textColor="#555555"
+                android:layout_marginTop="8dp"
+                android:textStyle="bold" />
+
+            <!-- Departamento -->
+            <TextView
+                android:id="@+id/departamentoTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Departamento: Sin departamento"
+                android:textColor="#555555"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
+        </LinearLayout>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

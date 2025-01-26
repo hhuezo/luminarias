@@ -46,3 +46,23 @@ data class PotenciaPromedio(
     val consumo_promedio: String?
 )
 
+data class ResponseCensoIndex(
+    val success: Boolean?,
+    val data: List<CensoIndex>?
+)
+
+data class CensoIndex(
+    val id: Int,
+    val fecha: String?,
+    val tipoLuminaria: String?,
+    val potenciaNominal: Int?,
+    val consumoMensual: String?,
+    val direccion: String?,
+    val observacion: String?,
+    val condicionLampara: Int?,
+    val compania: String?,
+    val distrito: String?
+)
+
+
+

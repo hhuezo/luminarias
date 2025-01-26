@@ -101,8 +101,15 @@ class SincronizarFragment : Fragment() {
                     ).show()
 
                 }
+                else{
+                    dbHelper.copyDatabase()
+                    Toast.makeText(
+                        nonNullContext, "Base de datos creó exitosamente.", Toast.LENGTH_SHORT
+                    ).show()
+                }
 
             }
+
 
         }
 
