@@ -2,6 +2,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.util.Log
+import com.dgehm.luminarias.model.CensoOfflineList
 import com.dgehm.luminarias.model.ReporteFallaOffline
 import com.dgehm.luminarias.model.ReporteFallaOfflineList
 import java.io.File
@@ -584,9 +585,105 @@ class DatabaseHelper(private val context: Context) {
 
 
 
+    fun insertCenso(
+        tipoLuminariaId: Int,
+        potenciaNominal: Int,
+        consumoMensual: Double,
+        distritoId: Int,
+        usuarioIngreso: Int,
+        latitud: String,
+        longitud: String,
+        usuario: Int,
+        direccion: String,
+        observacion: String?,
+        tipoFallaId: Int?,
+        condicionLampara: Int,
+        companiaId: Int?
+    ): Long {
+        val db = SQLiteDatabase.openDatabase(databasePath, null, SQLiteDatabase.OPEN_READWRITE)
+
+        val values = ContentValues().apply {
+            put("tipo_luminaria_id", tipoLuminariaId)
+            put("potencia_nominal", potenciaNominal)
+            put("consumo_mensual", consumoMensual)
+            put("distrito_id", distritoId)
+            put("usuario_ingreso", usuarioIngreso)
+            put("latitud", latitud)
+            put("longitud", longitud)
+            put("usuario", usuario)
+            put("direccion", direccion)
+            put("observacion", observacion) // Puede ser null
+            put("tipo_falla_id", tipoFallaId) // Puede ser null
+            put("condicion_lampara", condicionLampara)
+            put("compania_id", companiaId) // Puede ser null
+        }
+
+        val newRowId = db.insert("censo_luminaria", null, values)
+        db.close()
+
+        return newRowId
+    }
 
 
 
-    //
+    //funcion para listar censos en recicledview
+    fun getLIstarCensos(): List<CensoOfflineList> {
+        val censos = mutableListOf<CensoOfflineList>()
+
+        // Abre la base de datos en modo lectura
+        val db = SQLiteDatabase.openDatabase(databasePath, null, SQLiteDatabase.OPEN_READONLY)
+
+        val query = "select censo.id,luminaria.nombre as nombreLuminaria,strftime('%d/%m/%Y %H:%M', censo.fecha) AS fecha ,censo.potencia_nominal,censo.consumo_mensual,\n" +
+                "distrito.nombre as nombreDistrito,\n" +
+                "departamento.nombre as nombreDepartamento,censo.direccion,ifnull(censo.observacion,\"\") as observacion,ifnull(falla.nombre,\"\") as nombreFalla,censo.condicion_lampara as condicionLampara,compania.nombre as nombreCompania\n" +
+                "  from censo_luminaria censo \n" +
+                "left join tipo_falla falla on falla.id = censo.tipo_falla_id\n" +
+                "inner join tipo_luminaria luminaria  on luminaria.id = censo.tipo_luminaria_id\n" +
+                "inner join distrito on distrito.id = censo.distrito_id\n" +
+                "inner join municipio on municipio.id = distrito.municipio_id\n" +
+                "inner join departamento on departamento.id = municipio.departamento_id\n" +
+                "inner join compania on compania.id = censo.compania_id"
+        val cursor = db.rawQuery(query, null)
+
+        if (cursor.moveToFirst()) {
+            do {
+                val id = cursor.getLong(cursor.getColumnIndexOrThrow("id"))
+                val nombreLuminaria = cursor.getString(cursor.getColumnIndexOrThrow("nombreLuminaria")) ?: ""
+                val fecha = cursor.getString(cursor.getColumnIndexOrThrow("fecha")) ?: ""
+                val potenciaNominal = cursor.getInt(cursor.getColumnIndexOrThrow("potencia_nominal"))
+                val consumoMensual = cursor.getDouble(cursor.getColumnIndexOrThrow("consumo_mensual"))
+                val nombreDistrito = cursor.getString(cursor.getColumnIndexOrThrow("nombreDistrito")) ?: ""
+                val nombreDepartamento = cursor.getString(cursor.getColumnIndexOrThrow("nombreDepartamento")) ?: ""
+                val direccion = cursor.getString(cursor.getColumnIndexOrThrow("direccion")) ?: ""
+                val observacion = cursor.getString(cursor.getColumnIndexOrThrow("observacion")) ?: ""
+                val nombreFalla = cursor.getString(cursor.getColumnIndexOrThrow("nombreFalla")) ?: ""
+                val condicionLampara = cursor.getInt(cursor.getColumnIndexOrThrow("condicionLampara"))
+                val nombreCompania = cursor.getString(cursor.getColumnIndexOrThrow("nombreCompania")) ?: ""
+
+                // Crear el objeto ReporteFallaOfflineList con los valores obtenidos
+                val censo = CensoOfflineList(
+                    id = id,
+                    nombreLuminaria = nombreLuminaria,
+                    fecha = fecha,
+                    potenciaNominal = potenciaNominal,
+                    consumoMensual = consumoMensual,
+                    nombreDistrito = nombreDistrito,
+                    nombreDepartamento = nombreDepartamento,
+                    direccion = direccion,
+                    observacion = observacion,
+                    nombreFalla = nombreFalla,
+                    condicionLampara = condicionLampara,
+                    nombreCompania = nombreCompania
+                )
+
+                censos.add(censo)
+            } while (cursor.moveToNext())
+        }
+
+        cursor.close()
+        db.close()
+
+        return censos
+    }
 
 }

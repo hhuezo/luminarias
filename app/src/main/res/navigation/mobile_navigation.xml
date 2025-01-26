@@ -125,6 +125,9 @@
         <action
             android:id="@+id/action_censoOfflineFragment_to_censoIngresoOfflineFragment"
             app:destination="@id/censoIngresoOfflineFragment" />
+        <action
+            android:id="@+id/action_censoOfflineFragment_to_censoFragment"
+            app:destination="@id/censoFragment" />
     </fragment>
     <fragment
         android:id="@+id/censoIngresoOfflineFragment"

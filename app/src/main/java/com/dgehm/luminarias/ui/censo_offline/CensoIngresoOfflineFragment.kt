@@ -37,6 +37,7 @@ import com.dgehm.luminarias.databinding.FragmentCensoIngresoOfflineBinding
 import com.dgehm.luminarias.model.PotenciaPromedio
 import com.dgehm.luminarias.model.PotenciaPromedioResponse
 import com.dgehm.luminarias.ui.censo.CensoIngresoFragmentDirections
+import com.dgehm.luminarias.ui.reporte_falla_offline.ReporteFallaIngresoOfflineFragmentDirections
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import okhttp3.Call
@@ -543,93 +544,41 @@ class CensoIngresoOfflineFragment : Fragment() {
 
             // Capturar los IDs seleccionados de los Spinners
             val direccion = editDireccion?.text.toString()
-            val potenciaNominal = editPotenciaNominal.text.toString()
-            val consumoMensual = editConsumoMensual.text.toString()
-            val lamparaCondicion = switchCondicion.isChecked
+            val potenciaNominal = editPotenciaNominal.text.toString().toIntOrNull() ?: 0
+            val consumoMensual = editConsumoMensual.text.toString().toDoubleOrNull() ?: 0.0
+            val lamparaCondicion = if (switchCondicion.isChecked) 1 else 0
             val observacion = editObservacion.text.toString()
             val latitud = editLatitude.text.toString()
             val longitud = editLongitude.text.toString()
 
 
+            val dbHelper = DatabaseHelper(requireContext())
 
-            val json = JSONObject().apply {
-                put("usuario", usuarioId)
-                put("latitud", latitud)
-                put("longitud", longitud)
-                put("distrito_id", distritoId)
-                put("tipo_falla_id", tipoFallaId)
-                put("compania_id", companiaId)
-                put("direccion", direccion)
-                put("tipo_luminaria_id", tipoLuminariaId)
-                put("potencia_nominal", potenciaNominal)
-                put("potencia_promedio", potenciaPromedioId)
-                put("consumo_mensual", consumoMensual)
-                put("condicion_lampara", lamparaCondicion)
-                put("tipo_falla", tipoFallaId)
-                put("observacion", observacion)
-            }.toString()
+            val newRowId = dbHelper.insertCenso(
+                tipoLuminariaId,
+                potenciaNominal,
+                consumoMensual,
+                distritoId,
+                usuarioId,
+                latitud,
+                longitud,
+                usuarioId,
+                direccion,
+                observacion,
+                tipoFallaId,
+                lamparaCondicion,
+                companiaId
+            )
 
-            Log.e("json","json: $json")
+            // Verificar si la inserción fue exitosa
+            if (newRowId != -1L) {
+                Toast.makeText(requireContext(), "Registro guardado correctamente", Toast.LENGTH_SHORT).show()
+                val action = CensoIngresoOfflineFragmentDirections.actionCensoIngresoOfflineFragmentToCensoOfflineFragment()
+                findNavController().navigate(action)
+            } else {
+                Toast.makeText(requireContext(), "Error al guardar el registro", Toast.LENGTH_SHORT).show()
+            }
 
-            // Realizar la petición POST
-           /* val endpoint = "/api_censo_luminaria"
-            client.post(endpoint, json, object : Callback {
-                override fun onFailure(call: Call, e: IOException) {
-
-                    val dialog = MaterialDialog(requireContext()).show {
-                        title(text = "Error")
-                        message(text = "Error al hacer la petición: ${e.message}")
-                        icon(R.drawable.baseline_error_24)
-                        positiveButton(text = "Aceptar")
-                    }
-
-                    // Cerrar el diálogo después de 2 segundos
-                    Handler(Looper.getMainLooper()).postDelayed({
-                        dialog.dismiss()
-                    }, 2000)
-
-                }
-
-                override fun onResponse(call: Call, response: Response) {
-                    val responseData = response.body?.string()
-                    Log.d("Response", responseData ?: "No se recibió ninguna respuesta")
-
-                    requireActivity().runOnUiThread {
-                        if (response.isSuccessful) {
-                            val dialog = MaterialDialog(requireContext()).show {
-                                title(text = "Ok")
-                                message(text = "Registro guardado correctamente")
-                                icon(R.drawable.baseline_check_circle_24)
-                                positiveButton(text = "Aceptar")
-                            }
-
-                            // Cerrar el diálogo después de 2 segundos
-                            Handler(Looper.getMainLooper()).postDelayed({
-                                dialog.dismiss()
-                            }, 2000)
-
-                            //redicreccion al censo index
-                            val action = CensoIngresoFragmentDirections.actionCensoIngresoFragmentToCensoFragment()
-                            findNavController().navigate(action)
-
-                            //requireActivity().supportFragmentManager.popBackStack()
-                        } else {
-                            val dialog = MaterialDialog(requireContext()).show {
-                                title(text = "Error")
-                                message(text = "Error al enviar los datos")
-                                icon(R.drawable.baseline_error_24)
-                                positiveButton(text = "Aceptar")
-                            }
-
-                            // Cerrar el diálogo después de 2 segundos
-                            Handler(Looper.getMainLooper()).postDelayed({
-                                dialog.dismiss()
-                            }, 2000)
-                        }
-                    }
-                }
-            })
-            */
         }
 
 
