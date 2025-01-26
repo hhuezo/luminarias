@@ -40,6 +40,8 @@ class CensoFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        (requireActivity() as AppCompatActivity).supportActionBar?.title = "Censo luminaria"
+
         // Inicializar los valores de ubicacion
         GlobalUbicacion.latitud = null
         GlobalUbicacion.longitud = null

@@ -87,7 +87,7 @@ class CensoIngresoOfflineFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        (requireActivity() as AppCompatActivity).supportActionBar?.title = "Censo"
+        (requireActivity() as AppCompatActivity).supportActionBar?.title = "Censo luminaria"
 
         val sharedPreferences = requireContext().getSharedPreferences("Prefs", Context.MODE_PRIVATE)
         val usuarioId = sharedPreferences.getInt("usuarioId", 0)

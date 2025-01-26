@@ -55,6 +55,7 @@ class LoginFragment : Fragment() {
 
 
         val cardLogin = binding.cardLogin
+        val cardOffline = binding.cardOffline
         val cardHome = binding.cardHome
         val texHome = binding.texHome
 
@@ -85,12 +86,15 @@ class LoginFragment : Fragment() {
         }
 
 
+        cardOffline.visibility = View.GONE
+
         if (userId != null) {
             if(userId > 0)
             {
                 texHome.setText("Bienvenido $userName")
                 cardLogin.visibility = View.GONE
                 cardHome.visibility = View.VISIBLE
+                cardOffline.visibility = View.VISIBLE
             }
         }
 
@@ -103,6 +107,7 @@ class LoginFragment : Fragment() {
 
             cardLogin.visibility = View.VISIBLE
             cardHome.visibility = View.GONE
+            cardOffline.visibility = View.GONE
         }
 
         buttonSincronizar.setOnClickListener {
@@ -110,32 +115,6 @@ class LoginFragment : Fragment() {
             findNavController().navigate(action)
         }
 
-
-        /*
-        switchOffline.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                GlobalUbicacion.desconectado = 1
-
-                // Guardar en SharedPreferences
-                val sharedPreferences = requireContext().getSharedPreferences("Prefs", Context.MODE_PRIVATE)
-                val editor = sharedPreferences.edit()
-                editor.putInt("desconectado", 1)
-                editor.apply()  // Aplicar los cambios
-
-                val toast = Toast.makeText(requireContext(), "Modo offline activado", Toast.LENGTH_LONG)
-                toast.show()
-            } else {
-                // Guardar en SharedPreferences
-                val sharedPreferences = requireContext().getSharedPreferences("Prefs", Context.MODE_PRIVATE)
-                val editor = sharedPreferences.edit()
-                editor.putInt("desconectado", 0)
-                editor.apply()  // Aplicar los cambios
-
-                val toast = Toast.makeText(requireContext(), "Modo offline desactivado", Toast.LENGTH_LONG)
-                toast.show()
-            }
-        }
-*/
 
 
         switchOffline.setOnCheckedChangeListener { _, isChecked ->
@@ -255,6 +234,7 @@ class LoginFragment : Fragment() {
 
                             cardLogin.visibility = View.GONE
                             cardHome.visibility = View.VISIBLE
+                            cardOffline.visibility = View.VISIBLE
                         } else {
                             val dialog = MaterialDialog(requireContext()).show {
                                 title(text = "Error")
