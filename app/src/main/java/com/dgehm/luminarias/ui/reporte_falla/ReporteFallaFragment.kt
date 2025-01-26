@@ -58,16 +58,6 @@ class ReporteFallaFragment : Fragment(), ReporteFallaAdapter.OnReporteFallaClick
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val sharedPreferences = requireContext().getSharedPreferences("Prefs", Context.MODE_PRIVATE)
-        val desconectado = sharedPreferences.getInt("desconectado", 0) // Valor por defecto -1 si no existe
-
-
-        if(desconectado == 1)
-        {
-            val action = ReporteFallaFragmentDirections.actionReporteFallaFragmentToReporteFallaOfflineFragment()
-            findNavController().navigate(action)
-        }
-
         val usuarioId: Int? = GlobalUbicacion.usuarioId
 
 

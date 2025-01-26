@@ -557,6 +557,7 @@ class CensoIngresoOfflineFragment : Fragment() {
             val newRowId = dbHelper.insertCenso(
                 tipoLuminariaId,
                 potenciaNominal,
+                potenciaPromedioId,
                 consumoMensual,
                 distritoId,
                 usuarioId,

@@ -46,18 +46,7 @@ class CensoOfflineFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
 
-        val sharedPreferences = requireContext().getSharedPreferences("Prefs", Context.MODE_PRIVATE)
-        val desconectado = sharedPreferences.getInt("desconectado", 0) // Valor por defecto -1 si no existe
-
-        //Toast.makeText(requireContext(), "Valor de desconectado: $desconectado", Toast.LENGTH_SHORT).show()
-        if(desconectado == 0)
-        {
-            val action = CensoOfflineFragmentDirections.actionCensoOfflineFragmentToCensoFragment()
-            findNavController().navigate(action)
-        }
-
-
-        dbHelper = DatabaseHelper(requireContext())
+          dbHelper = DatabaseHelper(requireContext())
 
         if (dbHelper.databaseExists()) {
 

@@ -111,6 +111,32 @@ class LoginFragment : Fragment() {
         }
 
 
+        /*
+        switchOffline.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                GlobalUbicacion.desconectado = 1
+
+                // Guardar en SharedPreferences
+                val sharedPreferences = requireContext().getSharedPreferences("Prefs", Context.MODE_PRIVATE)
+                val editor = sharedPreferences.edit()
+                editor.putInt("desconectado", 1)
+                editor.apply()  // Aplicar los cambios
+
+                val toast = Toast.makeText(requireContext(), "Modo offline activado", Toast.LENGTH_LONG)
+                toast.show()
+            } else {
+                // Guardar en SharedPreferences
+                val sharedPreferences = requireContext().getSharedPreferences("Prefs", Context.MODE_PRIVATE)
+                val editor = sharedPreferences.edit()
+                editor.putInt("desconectado", 0)
+                editor.apply()  // Aplicar los cambios
+
+                val toast = Toast.makeText(requireContext(), "Modo offline desactivado", Toast.LENGTH_LONG)
+                toast.show()
+            }
+        }
+*/
+
 
         switchOffline.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
@@ -133,6 +159,13 @@ class LoginFragment : Fragment() {
 
                 val toast = Toast.makeText(requireContext(), "Modo offline desactivado", Toast.LENGTH_LONG)
                 toast.show()
+            }
+
+            // Reiniciar la actividad principal desde el fragmento
+            activity?.let {
+                val intent = it.intent
+                it.finish()
+                it.startActivity(intent)
             }
         }
 

@@ -107,8 +107,6 @@ class SincronizarFragment : Fragment() {
         }
 
 
-       /* btnSincronizar.setOnClickListener */
-
 
         btnSincronizar.setOnClickListener {
             context?.let { nonNullContext ->
@@ -121,69 +119,139 @@ class SincronizarFragment : Fragment() {
                     var enviadosCorrectos = 0
                     var enviadosErroneos = 0
 
+
+                    // Para sincronizar censos
+                    val censos = dbHelper.getCensos()
+                    val totalCensos = censos.size
+
                     // Mostrar el ProgressBar
                     loadingProgressBar.visibility = View.VISIBLE
 
-                    for (reporte in reportesFalla) {
-                        val base64String: String? = when (reporte.tipoImagen) {
-                            "1" -> convertirImagenUriABase64(requireContext(), Uri.parse(reporte.urlFoto))
-                            "2" -> convertirFotoUriABase64(requireContext(), Uri.parse(reporte.urlFoto).toString())
-                            else -> null
-                        }
-
-                        val json = JSONObject().apply {
-                            put("distrito_id", reporte.distritoId)
-                            put("tipo_falla_id", reporte.tipoFallaId)
-                            put("descripcion", reporte.descripcion)
-                            put("latitud", reporte.latitud)
-                            put("longitud", reporte.longitud)
-                            put("telefono_contacto", reporte.telefonoContacto)
-                            put("nombre_contacto", reporte.nombreContacto)
-                            put("correo_contacto", reporte.correoContacto)
-                            put("usuario_id", reporte.usuarioCreacion)
-                            put("fecha", reporte.fechaCreacion)
-                            put("imagen", base64String)
-                        }
-
-                        // Realizar la petición POST
-                        val endpoint = "/api_reporte_falla/sincronizar"
-                        client.post(endpoint, json.toString(), object : Callback {
-                            override fun onFailure(call: Call, e: IOException) {
-                                enviadosErroneos++
-                                Log.e("SyncError", "Error al enviar reporte ID ${reporte.id}: ${e.message}")
-
-                                requireActivity().runOnUiThread {
-                                    MaterialDialog(requireContext()).show {
-                                        title(text = "Error")
-                                        message(text = "Error al hacer la petición: ${e.message}")
-                                        icon(R.drawable.baseline_error_24)
-                                        positiveButton(text = "Aceptar")
-                                    }
-                                }
-
-                                verificarFinalizacion(totalReportes, enviadosCorrectos, enviadosErroneos)
+                    if (totalReportes > 0) {
+                        for (reporte in reportesFalla) {
+                            val base64String: String? = when (reporte.tipoImagen) {
+                                "1" -> convertirImagenUriABase64(requireContext(), Uri.parse(reporte.urlFoto))
+                                "2" -> convertirFotoUriABase64(requireContext(), Uri.parse(reporte.urlFoto).toString())
+                                else -> null
                             }
 
-                            override fun onResponse(call: Call, response: Response) {
-                                requireActivity().runOnUiThread {
-                                    if (response.isSuccessful) {
-                                        enviadosCorrectos++
-                                        dbHelper.deleteReporteFallaById(reporte.id)
+                            val json = JSONObject().apply {
+                                put("distrito_id", reporte.distritoId)
+                                put("tipo_falla_id", reporte.tipoFallaId)
+                                put("descripcion", reporte.descripcion)
+                                put("latitud", reporte.latitud)
+                                put("longitud", reporte.longitud)
+                                put("telefono_contacto", reporte.telefonoContacto)
+                                put("nombre_contacto", reporte.nombreContacto)
+                                put("correo_contacto", reporte.correoContacto)
+                                put("usuario_id", reporte.usuarioCreacion)
+                                put("fecha", reporte.fechaCreacion)
+                                put("imagen", base64String)
+                            }
 
-                                        if (reporte.tipoImagen == "2") {
-                                            val uri = Uri.parse(reporte.urlFoto)
-                                            eliminarArchivo(requireContext(), uri)
+                            // Realizar la petición POST
+                            val endpoint = "/api_reporte_falla/sincronizar"
+                            client.post(endpoint, json.toString(), object : Callback {
+                                override fun onFailure(call: Call, e: IOException) {
+                                    enviadosErroneos++
+                                    Log.e("SyncError", "Error al enviar reporte ID ${reporte.id}: ${e.message}")
+
+                                    requireActivity().runOnUiThread {
+                                        MaterialDialog(requireContext()).show {
+                                            title(text = "Error")
+                                            message(text = "Error al hacer la petición: ${e.message}")
+                                            icon(R.drawable.baseline_error_24)
+                                            positiveButton(text = "Aceptar")
                                         }
-                                    } else {
-                                        enviadosErroneos++
-                                        Log.e("SyncError", "Error en respuesta para reporte ID ${reporte.id}")
                                     }
 
-                                    verificarFinalizacion(totalReportes, enviadosCorrectos, enviadosErroneos)
+                                    verificarFinalizacion(totalReportes, totalCensos, enviadosCorrectos, enviadosErroneos)
                                 }
-                            }
-                        })
+
+                                override fun onResponse(call: Call, response: Response) {
+                                    requireActivity().runOnUiThread {
+                                        if (response.isSuccessful) {
+                                            enviadosCorrectos++
+                                            dbHelper.deleteReporteFallaById(reporte.id)
+
+                                            if (reporte.tipoImagen == "2") {
+                                                val uri = Uri.parse(reporte.urlFoto)
+                                                eliminarArchivo(requireContext(), uri)
+                                            }
+                                        } else {
+                                            enviadosErroneos++
+                                            Log.e("SyncError", "Error en respuesta para reporte ID ${reporte.id}")
+                                        }
+
+                                        verificarFinalizacion(totalReportes, totalCensos, enviadosCorrectos, enviadosErroneos)
+                                    }
+                                }
+                            })
+                        }
                     }
+
+
+
+                    if (totalCensos > 0) {
+                        for (censo in censos) {
+
+                            val json = JSONObject().apply {
+                                put("id", censo.id)
+                                put("tipo_luminaria_id", censo.tipoLuminariaId)
+                                put("fecha", censo.fecha)
+                                put("potencia_nominal", if (censo.potenciaNominal == 0) "" else censo.potenciaNominal)
+                                put("potencia_promedio_id", censo.potenciaPromedioId)
+                                put("consumo_mensual", censo.consumoMensual)
+                                put("distrito_id", censo.distritoId)
+                                put("usuario_ingreso", censo.usuarioIngreso)
+                                put("latitud", censo.latitud)
+                                put("longitud", censo.longitud)
+                                put("usuario", censo.usuario)
+                                put("direccion", censo.direccion)
+                                put("observacion", censo.observacion)
+                                put("tipo_falla_id", censo.tipoFallaId)
+                                put("condicion_lampara", censo.condicionLampara)
+                                put("compania_id", censo.companiaId)
+                            }
+
+                            // Realizar la petición POST
+                            val endpoint = "/api_censo_luminaria/sincronizar"
+                            client.post(endpoint, json.toString(), object : Callback {
+                                override fun onFailure(call: Call, e: IOException) {
+                                    enviadosErroneos++
+                                    Log.e("SyncError", "Error al enviar censo ID ${censo.id}: ${e.message}")
+
+                                    requireActivity().runOnUiThread {
+                                        MaterialDialog(requireContext()).show {
+                                            title(text = "Error")
+                                            message(text = "Error al hacer la petición: ${e.message}")
+                                            icon(R.drawable.baseline_error_24)
+                                            positiveButton(text = "Aceptar")
+                                        }
+                                    }
+
+                                    verificarFinalizacion(totalReportes, totalCensos, enviadosCorrectos, enviadosErroneos)
+                                }
+
+                                override fun onResponse(call: Call, response: Response) {
+                                    requireActivity().runOnUiThread {
+                                        if (response.isSuccessful) {
+                                            enviadosCorrectos++
+                                            dbHelper.deleteCensoById(censo.id)
+                                        } else {
+                                            enviadosErroneos++
+                                            Log.e("SyncError", "Error en respuesta para censo ID ${censo.id}")
+                                        }
+
+                                        verificarFinalizacion(totalReportes, totalCensos, enviadosCorrectos, enviadosErroneos)
+                                    }
+                                }
+                            })
+                        }
+                    }
+
+
+
                 } else {
                     dbHelper.copyDatabase()
                     Toast.makeText(nonNullContext, "Base de datos creada exitosamente.", Toast.LENGTH_SHORT).show()
@@ -192,9 +260,6 @@ class SincronizarFragment : Fragment() {
                 Toast.makeText(requireContext(), "El contexto es nulo", Toast.LENGTH_SHORT).show()
             }
         }
-
-
-
 
 
 
@@ -402,34 +467,28 @@ class SincronizarFragment : Fragment() {
 
 
     /**
-     * Función para verificar si ya se han procesado todos los reportes y mostrar un mensaje adecuado.
-     */
-    private fun verificarFinalizacion(total: Int, correctos: Int, errores: Int) {
-        if (correctos + errores == total) {
+     * Función para verificar si ya se han procesado todos los reportes y mostrar un mensaje adecuado.*/
 
-            requireActivity().runOnUiThread {
-                val loadingProgressBar: ProgressBar = binding.progressBar
-                loadingProgressBar.visibility = View.GONE
-                when {
-                    correctos == total -> {
-                        Toast.makeText(requireContext(), "Todos los datos se enviaron correctamente", Toast.LENGTH_LONG).show()
-                    }
-                    errores == total -> {
-                        MaterialDialog(requireContext()).show {
-                            title(text = "Error")
-                            message(text = "Ningún dato se pudo enviar. Verifica tu conexión.")
-                            icon(R.drawable.baseline_error_24)
-                            positiveButton(text = "Aceptar")
-                        }
-                    }
-                    else -> {
-                        MaterialDialog(requireContext()).show {
-                            title(text = "Envío Parcial")
-                            message(text = "Algunos datos no se enviaron. $correctos enviados correctamente, $errores con error.")
-                            icon(R.drawable.baseline_error_24)
-                            positiveButton(text = "Aceptar")
-                        }
-                    }
+
+    fun verificarFinalizacion(totalReportes: Int, totalCensos: Int, correctos: Int, errores: Int) {
+        val loadingProgressBar: ProgressBar = binding.progressBar
+        loadingProgressBar.visibility = View.GONE
+        if (totalReportes + totalCensos == correctos + errores) {
+            if (errores == 0) {
+                Toast.makeText(requireContext(), "Todos los datos fueron enviados correctamente", Toast.LENGTH_LONG).show()
+            } else if (correctos > 0) {
+                MaterialDialog(requireContext()).show {
+                    title(text = "Envío Parcial")
+                    message(text = "Algunos datos no se enviaron. $correctos enviados correctamente, $errores con error.")
+                    icon(R.drawable.baseline_error_24)
+                    positiveButton(text = "Aceptar")
+                }
+            } else {
+                MaterialDialog(requireContext()).show {
+                    title(text = "Error")
+                    message(text = "Ningún dato se pudo enviar. Verifica tu conexión.")
+                    icon(R.drawable.baseline_error_24)
+                    positiveButton(text = "Aceptar")
                 }
             }
         }

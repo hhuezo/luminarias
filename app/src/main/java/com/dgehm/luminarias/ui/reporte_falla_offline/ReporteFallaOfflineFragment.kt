@@ -47,15 +47,6 @@ class ReporteFallaOfflineFragment : Fragment() {
 
         (requireActivity() as AppCompatActivity).supportActionBar?.title = "Reporte falla"
 
-        val sharedPreferences = requireContext().getSharedPreferences("Prefs", Context.MODE_PRIVATE)
-        val desconectado = sharedPreferences.getInt("desconectado", 0) // Valor por defecto -1 si no existe
-
-        //Toast.makeText(requireContext(), "Valor de desconectado: $desconectado", Toast.LENGTH_SHORT).show()
-        if(desconectado == 0)
-        {
-            val action = ReporteFallaOfflineFragmentDirections.actionReporteFallaOfflineFragmentToReporteFallaIngresoOfflineFragment()
-            findNavController().navigate(action)
-        }
 
         dbHelper = DatabaseHelper(requireContext())
 

@@ -2,6 +2,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.util.Log
+import com.dgehm.luminarias.model.CensoOffline
 import com.dgehm.luminarias.model.CensoOfflineList
 import com.dgehm.luminarias.model.ReporteFallaOffline
 import com.dgehm.luminarias.model.ReporteFallaOfflineList
@@ -496,7 +497,7 @@ class DatabaseHelper(private val context: Context) {
         // Abre la base de datos en modo lectura
         val db = SQLiteDatabase.openDatabase(databasePath, null, SQLiteDatabase.OPEN_READONLY)
 
-        val query = "select reporte.id,strftime('%d/%m/%Y %H:%M', reporte.fecha_creacion) AS fecha,tipo.nombre as tipoFalla,  reporte.nombre_contacto as nombreContacto,reporte.telefono_contacto as telefonoContacto,reporte.url_foto  as descripcion,\n" +
+        val query = "select reporte.id,strftime('%d/%m/%Y %H:%M', reporte.fecha_creacion) AS fecha,tipo.nombre as tipoFalla,  reporte.nombre_contacto as nombreContacto,reporte.telefono_contacto as telefonoContacto,reporte.descripcion,\n" +
                 "distrito.nombre as distrito,departamento.nombre as departamento from reporte_falla reporte \n" +
                 "inner join distrito on distrito.id = reporte.distrito_id\n" +
                 "inner join municipio  on municipio.id = distrito.municipio_id\n" +
@@ -588,6 +589,7 @@ class DatabaseHelper(private val context: Context) {
     fun insertCenso(
         tipoLuminariaId: Int,
         potenciaNominal: Int,
+        potenciaPromedioId: Int,
         consumoMensual: Double,
         distritoId: Int,
         usuarioIngreso: Int,
@@ -605,6 +607,7 @@ class DatabaseHelper(private val context: Context) {
         val values = ContentValues().apply {
             put("tipo_luminaria_id", tipoLuminariaId)
             put("potencia_nominal", potenciaNominal)
+            put("potencia_promedio_id", potenciaPromedioId)
             put("consumo_mensual", consumoMensual)
             put("distrito_id", distritoId)
             put("usuario_ingreso", usuarioIngreso)
@@ -633,16 +636,27 @@ class DatabaseHelper(private val context: Context) {
         // Abre la base de datos en modo lectura
         val db = SQLiteDatabase.openDatabase(databasePath, null, SQLiteDatabase.OPEN_READONLY)
 
-        val query = "select censo.id,luminaria.nombre as nombreLuminaria,strftime('%d/%m/%Y %H:%M', censo.fecha) AS fecha ,censo.potencia_nominal,censo.consumo_mensual,\n" +
-                "distrito.nombre as nombreDistrito,\n" +
-                "departamento.nombre as nombreDepartamento,censo.direccion,ifnull(censo.observacion,\"\") as observacion,ifnull(falla.nombre,\"\") as nombreFalla,censo.condicion_lampara as condicionLampara,compania.nombre as nombreCompania\n" +
-                "  from censo_luminaria censo \n" +
-                "left join tipo_falla falla on falla.id = censo.tipo_falla_id\n" +
-                "inner join tipo_luminaria luminaria  on luminaria.id = censo.tipo_luminaria_id\n" +
-                "inner join distrito on distrito.id = censo.distrito_id\n" +
-                "inner join municipio on municipio.id = distrito.municipio_id\n" +
-                "inner join departamento on departamento.id = municipio.departamento_id\n" +
-                "inner join compania on compania.id = censo.compania_id"
+        val query = "SELECT censo.id, luminaria.nombre AS nombreLuminaria, \n" +
+                "strftime('%d/%m/%Y %H:%M', censo.fecha) AS fecha, \n" +
+                "CASE \n" +
+                "    WHEN censo.potencia_promedio_id <> 0 THEN potencia.consumo_promedio\n" +
+                "    ELSE censo.potencia_nominal \n" +
+                "END AS potenciaNominal, \n" +
+                "censo.consumo_mensual as consumoMensual, distrito.nombre AS nombreDistrito, \n" +
+                "departamento.nombre AS nombreDepartamento, censo.direccion, \n" +
+                "IFNULL(censo.observacion, '') AS observacion, \n" +
+                "IFNULL(falla.nombre, '') AS nombreFalla, \n" +
+                "censo.condicion_lampara AS condicionLampara, \n" +
+                "compania.nombre AS nombreCompania \n" +
+                "FROM censo_luminaria censo \n" +
+                "LEFT JOIN tipo_falla falla ON falla.id = censo.tipo_falla_id \n" +
+                "INNER JOIN tipo_luminaria luminaria ON luminaria.id = censo.tipo_luminaria_id \n" +
+                "INNER JOIN distrito ON distrito.id = censo.distrito_id \n" +
+                "INNER JOIN municipio ON municipio.id = distrito.municipio_id \n" +
+                "INNER JOIN departamento ON departamento.id = municipio.departamento_id \n" +
+                "INNER JOIN compania ON compania.id = censo.compania_id\n" +
+                "LEFT JOIN potencia_promedio potencia ON potencia.id = censo.potencia_promedio_id\n" +
+                "order by censo.id DESC"
         val cursor = db.rawQuery(query, null)
 
         if (cursor.moveToFirst()) {
@@ -650,8 +664,8 @@ class DatabaseHelper(private val context: Context) {
                 val id = cursor.getLong(cursor.getColumnIndexOrThrow("id"))
                 val nombreLuminaria = cursor.getString(cursor.getColumnIndexOrThrow("nombreLuminaria")) ?: ""
                 val fecha = cursor.getString(cursor.getColumnIndexOrThrow("fecha")) ?: ""
-                val potenciaNominal = cursor.getInt(cursor.getColumnIndexOrThrow("potencia_nominal"))
-                val consumoMensual = cursor.getDouble(cursor.getColumnIndexOrThrow("consumo_mensual"))
+                val potenciaNominal = cursor.getInt(cursor.getColumnIndexOrThrow("potenciaNominal"))
+                val consumoMensual = cursor.getDouble(cursor.getColumnIndexOrThrow("consumoMensual"))
                 val nombreDistrito = cursor.getString(cursor.getColumnIndexOrThrow("nombreDistrito")) ?: ""
                 val nombreDepartamento = cursor.getString(cursor.getColumnIndexOrThrow("nombreDepartamento")) ?: ""
                 val direccion = cursor.getString(cursor.getColumnIndexOrThrow("direccion")) ?: ""
@@ -685,5 +699,56 @@ class DatabaseHelper(private val context: Context) {
 
         return censos
     }
+
+
+    fun getCensos(): List<CensoOffline> {
+        val censos = mutableListOf<CensoOffline>()
+        val db = SQLiteDatabase.openDatabase(databasePath, null, SQLiteDatabase.OPEN_READONLY)
+        val query = "SELECT * FROM censo_luminaria"
+        val cursor = db.rawQuery(query, null)
+
+        if (cursor.moveToFirst()) {
+            do {
+                val id = cursor.getLong(cursor.getColumnIndexOrThrow("id"))
+                val tipoLuminariaId = cursor.getInt(cursor.getColumnIndexOrThrow("tipo_luminaria_id"))
+                val fecha = cursor.getString(cursor.getColumnIndexOrThrow("fecha"))
+                val potenciaNominal = cursor.getInt(cursor.getColumnIndexOrThrow("potencia_nominal"))
+                val potenciaPromedioId = cursor.getInt(cursor.getColumnIndexOrThrow("potencia_promedio_id"))
+                val consumoMensual = cursor.getDouble(cursor.getColumnIndexOrThrow("consumo_mensual"))
+                val distritoId = cursor.getInt(cursor.getColumnIndexOrThrow("distrito_id"))
+                val usuarioIngreso = cursor.getInt(cursor.getColumnIndexOrThrow("usuario_ingreso"))
+                val latitud = cursor.getString(cursor.getColumnIndexOrThrow("latitud"))
+                val longitud = cursor.getString(cursor.getColumnIndexOrThrow("longitud"))
+                val usuario = cursor.getInt(cursor.getColumnIndexOrThrow("usuario"))
+                val direccion = cursor.getString(cursor.getColumnIndexOrThrow("direccion"))
+                val observacion = cursor.getString(cursor.getColumnIndexOrThrow("observacion"))
+                val tipoFallaId = cursor.getInt(cursor.getColumnIndexOrThrow("tipo_falla_id"))
+                val condicionLampara = cursor.getInt(cursor.getColumnIndexOrThrow("condicion_lampara"))
+                val companiaId = cursor.getInt(cursor.getColumnIndexOrThrow("compania_id"))
+
+                val censo = CensoOffline(
+                    id, tipoLuminariaId, fecha, potenciaNominal,potenciaPromedioId, consumoMensual,
+                    distritoId, usuarioIngreso, latitud, longitud, usuario,
+                    direccion, observacion, tipoFallaId, condicionLampara, companiaId
+                )
+                censos.add(censo)
+            } while (cursor.moveToNext())
+        }
+
+        cursor.close()
+        db.close()
+        return censos
+    }
+
+
+    fun deleteCensoById(id: Long) {
+        val db = SQLiteDatabase.openDatabase(databasePath, null, SQLiteDatabase.OPEN_READWRITE)
+        val query = "DELETE FROM censo_luminaria WHERE id = ?"
+        val statement = db.compileStatement(query)
+        statement.bindLong(1, id)
+        statement.executeUpdateDelete()
+        db.close()
+    }
+
 
 }

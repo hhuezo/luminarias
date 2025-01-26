@@ -40,17 +40,6 @@ class CensoFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-
-        val sharedPreferences = requireContext().getSharedPreferences("Prefs", Context.MODE_PRIVATE)
-        val desconectado = sharedPreferences.getInt("desconectado", 0) // Valor por defecto -1 si no existe
-
-
-        if(desconectado == 1)
-        {
-            val action = CensoFragmentDirections.actionCensoFragmentToCensoOfflineFragment()
-            findNavController().navigate(action)
-        }
-
         // Inicializar los valores de ubicacion
         GlobalUbicacion.latitud = null
         GlobalUbicacion.longitud = null
