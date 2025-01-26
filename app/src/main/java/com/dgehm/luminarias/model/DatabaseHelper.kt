@@ -1,6 +1,7 @@
 import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
+import android.util.Log
 import com.dgehm.luminarias.model.ReporteFallaOffline
 import com.dgehm.luminarias.model.ReporteFallaOfflineList
 import java.io.File
@@ -84,6 +85,10 @@ class DatabaseHelper(private val context: Context) {
 
         return departamentos
     }
+
+
+
+
 
     fun getDepartamentoId(nombre: String): Int {
         var departamentoId = 0
@@ -220,6 +225,175 @@ class DatabaseHelper(private val context: Context) {
     }
 
 
+    //funcion para obtener las comañias
+    fun getCompanias(): List<String> {
+        val registros = mutableListOf<String>()
+
+        // Abre la base de datos en modo lectura
+        val db = SQLiteDatabase.openDatabase(databasePath, null, SQLiteDatabase.OPEN_READONLY)
+
+        val query = "SELECT nombre FROM compania"
+        val cursor = db.rawQuery(query, null)
+
+        if (cursor.moveToFirst()) {
+            do {
+                val nombre = cursor.getString(cursor.getColumnIndexOrThrow("nombre"))
+                registros.add(nombre)
+            } while (cursor.moveToNext())
+        }
+
+        cursor.close()
+        db.close()
+
+        return registros
+    }
+
+    fun getCompaniaId(nombre: String): Int {
+        var companiaId = 0
+
+        // Abre la base de datos en modo lectura
+        val db = SQLiteDatabase.openDatabase(databasePath, null, SQLiteDatabase.OPEN_READONLY)
+
+        // Consulta para obtener el ID del departamento por nombre
+        val query = "SELECT id FROM compania WHERE nombre = ?"
+        val cursor = db.rawQuery(query, arrayOf(nombre))
+
+        // Si el cursor tiene resultados, obtenemos el ID
+        if (cursor.moveToFirst()) {
+            companiaId = cursor.getInt(cursor.getColumnIndexOrThrow("id"))
+        }
+
+        cursor.close()
+        db.close()
+
+        return companiaId
+    }
+
+
+    //funcion para obtener las tipos
+    fun getTipoLuminarias(): List<String> {
+        val registros = mutableListOf<String>()
+
+        // Abre la base de datos en modo lectura
+        val db = SQLiteDatabase.openDatabase(databasePath, null, SQLiteDatabase.OPEN_READONLY)
+
+        val query = "SELECT nombre FROM tipo_luminaria"
+        val cursor = db.rawQuery(query, null)
+
+        if (cursor.moveToFirst()) {
+            do {
+                val nombre = cursor.getString(cursor.getColumnIndexOrThrow("nombre"))
+                registros.add(nombre)
+            } while (cursor.moveToNext())
+        }
+
+        cursor.close()
+        db.close()
+
+        return registros
+    }
+
+
+    fun getTipoLuminariaId(nombre: String): Int {
+        var registroId = 0
+
+        // Abre la base de datos en modo lectura
+        val db = SQLiteDatabase.openDatabase(databasePath, null, SQLiteDatabase.OPEN_READONLY)
+
+        // Consulta para obtener el ID del departamento por nombre
+        val query = "SELECT id FROM tipo_luminaria WHERE nombre = ?"
+        val cursor = db.rawQuery(query, arrayOf(nombre))
+
+        // Si el cursor tiene resultados, obtenemos el ID
+        if (cursor.moveToFirst()) {
+            registroId = cursor.getInt(cursor.getColumnIndexOrThrow("id"))
+        }
+
+        cursor.close()
+        db.close()
+
+        return registroId
+    }
+
+
+
+
+
+    // Método para obtener los tipos de falla
+    fun getPotencias(id: Int): List<String> {
+        val registros = mutableListOf<String>()
+
+        // Abre la base de datos en modo lectura
+        val db = SQLiteDatabase.openDatabase(databasePath, null, SQLiteDatabase.OPEN_READONLY)
+
+        val query = "SELECT potencia FROM potencia_promedio where tipo_luminaria_id =  $id"
+        val cursor = db.rawQuery(query, null)
+
+        if (cursor.moveToFirst()) {
+            do {
+                val nombre = cursor.getString(cursor.getColumnIndexOrThrow("potencia"))
+                registros.add(nombre)
+            } while (cursor.moveToNext())
+        }
+
+        cursor.close()
+        db.close()
+
+        return registros
+    }
+
+
+    fun getPotenciaId(potencia: String, tipoLuminariaId: Int): Int {
+        var registroId = 0
+
+        // Abre la base de datos en modo lectura
+        val db = SQLiteDatabase.openDatabase(databasePath, null, SQLiteDatabase.OPEN_READONLY)
+
+        // Consulta segura con parámetros
+        val query = "SELECT id FROM potencia_promedio WHERE potencia = ? AND tipo_luminaria_id = ?"
+
+        Log.e("query", "query $query")
+
+        // Usar los dos parámetros en el array
+        val cursor = db.rawQuery(query, arrayOf(potencia, tipoLuminariaId.toString()))
+
+        // Si el cursor tiene resultados, obtenemos el ID
+        if (cursor.moveToFirst()) {
+            registroId = cursor.getInt(cursor.getColumnIndexOrThrow("id"))
+        }
+
+        // Cerrar cursor y base de datos
+        cursor.close()
+        db.close()
+
+        return registroId
+    }
+
+
+    fun getConsumoPromedio(potencia: String, tipoLuminariaId: Int): String {
+        var consumoPromedio = "0.0" // Inicializar como String
+
+        // Abre la base de datos en modo lectura
+        val db = SQLiteDatabase.openDatabase(databasePath, null, SQLiteDatabase.OPEN_READONLY)
+
+        // Consulta segura con parámetros
+        val query = "SELECT consumo_promedio FROM potencia_promedio WHERE potencia = ? AND tipo_luminaria_id = ?"
+
+        // Ejecutar consulta con parámetros
+        val cursor = db.rawQuery(query, arrayOf(potencia, tipoLuminariaId.toString()))
+
+        // Si el cursor tiene resultados, obtenemos el consumo_promedio como Double y lo convertimos a String
+        if (cursor.moveToFirst()) {
+            consumoPromedio = cursor.getDouble(cursor.getColumnIndexOrThrow("consumo_promedio")).toString()
+        }
+
+        // Cerrar cursor y base de datos
+        cursor.close()
+        db.close()
+
+        return consumoPromedio
+    }
+
 
 
     // Método para obtener los tipos de falla
@@ -244,6 +418,31 @@ class DatabaseHelper(private val context: Context) {
 
         return tiposFalla
     }
+
+
+    fun getTiposFallaId(nombre: String): Int {
+        var registroId = 0
+
+        // Abre la base de datos en modo lectura
+        val db = SQLiteDatabase.openDatabase(databasePath, null, SQLiteDatabase.OPEN_READONLY)
+
+        // Consulta para obtener el ID del departamento por nombre
+        val query = "SELECT id FROM tipo_falla WHERE nombre = ?"
+        val cursor = db.rawQuery(query, arrayOf(nombre))
+
+        // Si el cursor tiene resultados, obtenemos el ID
+        if (cursor.moveToFirst()) {
+            registroId = cursor.getInt(cursor.getColumnIndexOrThrow("id"))
+        }
+
+        cursor.close()
+        db.close()
+
+        return registroId
+    }
+
+
+
 
 
 

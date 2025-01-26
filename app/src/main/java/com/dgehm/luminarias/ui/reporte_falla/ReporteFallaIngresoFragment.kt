@@ -3,6 +3,8 @@ package com.dgehm.luminarias.ui.reporte_falla
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -44,6 +46,7 @@ import com.dgehm.luminarias.model.ResponseDistrito
 import com.dgehm.luminarias.model.ResponseMunicipio
 import com.dgehm.luminarias.model.ResponseReporteFallaCreate
 import com.dgehm.luminarias.model.TipoFalla
+import com.google.firebase.crashlytics.buildtools.reloc.org.apache.commons.io.output.ByteArrayOutputStream
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import okhttp3.Call
@@ -474,9 +477,26 @@ class ReporteFallaIngresoFragment : Fragment() {
                 try {
                     requireContext().contentResolver.openInputStream(photoUri!!)
                         .use { inputStream ->
-                            val bytes = inputStream?.readBytes()
-                            imagenBase64 = Base64.encodeToString(bytes, Base64.DEFAULT)
-                            //Log.d("ImagenBase64", imagenBase64 ?: "La cadena es nula")
+                            val originalBytes = inputStream?.readBytes()
+                            val originalSize = originalBytes?.size ?: 0
+
+                            if (originalSize > 800 * 1024) {  // 800 KB in bytes
+                                // Compress image
+                                val bitmap = originalBytes?.let { it1 -> BitmapFactory.decodeByteArray(originalBytes, 0, it1.size) }
+                                val compressedBitmap = bitmap?.let { it1 -> compressBitmap(it1) }
+
+                                // Convert compressed bitmap to Base64
+                                val byteArrayOutputStream = ByteArrayOutputStream()
+                                if (compressedBitmap != null) {
+                                    compressedBitmap.compress(Bitmap.CompressFormat.JPEG, 80, byteArrayOutputStream)
+                                }
+                                val compressedBytes = byteArrayOutputStream.toByteArray()
+                                imagenBase64 = Base64.encodeToString(compressedBytes, Base64.DEFAULT)
+                            } else {
+                                // No compression needed, just Base64 encode original image
+                                imagenBase64 = Base64.encodeToString(originalBytes, Base64.DEFAULT)
+                            }
+                            // Log.d("ImagenBase64", imagenBase64 ?: "La cadena es nula")
                         }
                 } catch (e: IOException) {
                     Log.e("ImagenBase64", "Error al leer la imagen", e)
@@ -861,6 +881,24 @@ class ReporteFallaIngresoFragment : Fragment() {
             storageDir
         )
     }
+
+
+
+    // Compress image by resizing it (you can adjust the size as per your needs)
+    private fun compressBitmap(bitmap: Bitmap): Bitmap {
+        val maxWidth = 800  // Max width for the compressed image
+        val maxHeight = 800  // Max height for the compressed image
+
+        val width = bitmap.width
+        val height = bitmap.height
+
+        val scaleFactor = Math.min(maxWidth.toFloat() / width, maxHeight.toFloat() / height)
+        val newWidth = (width * scaleFactor).toInt()
+        val newHeight = (height * scaleFactor).toInt()
+
+        return Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true)
+    }
+
 
 
 

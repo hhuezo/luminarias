@@ -1,5 +1,6 @@
 package com.dgehm.luminarias.ui.censo
 
+import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -12,6 +13,7 @@ import androidx.navigation.fragment.findNavController
 import com.dgehm.luminarias.GlobalUbicacion
 import com.dgehm.luminarias.R
 import com.dgehm.luminarias.databinding.FragmentCensoBinding
+import com.dgehm.luminarias.ui.reporte_falla.ReporteFallaFragmentDirections
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class CensoFragment : Fragment() {
@@ -37,6 +39,17 @@ class CensoFragment : Fragment() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+
+        val sharedPreferences = requireContext().getSharedPreferences("Prefs", Context.MODE_PRIVATE)
+        val desconectado = sharedPreferences.getInt("desconectado", 0) // Valor por defecto -1 si no existe
+
+
+        if(desconectado == 1)
+        {
+            val action = CensoFragmentDirections.actionCensoFragmentToCensoOfflineFragment()
+            findNavController().navigate(action)
+        }
 
         // Inicializar los valores de ubicacion
         GlobalUbicacion.latitud = null

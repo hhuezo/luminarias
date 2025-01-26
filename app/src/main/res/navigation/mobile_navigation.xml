@@ -20,6 +20,9 @@
         <action
             android:id="@+id/action_censoFragment_to_censoMapaFragment"
             app:destination="@id/censoMapaFragment" />
+        <action
+            android:id="@+id/action_censoFragment_to_censoOfflineFragment"
+            app:destination="@id/censoOfflineFragment" />
     </fragment>
 
     <fragment
@@ -113,5 +116,23 @@
         <action
             android:id="@+id/action_reporteFallaIngresoOfflineFragment_to_reporteFallaOfflineFragment"
             app:destination="@id/reporteFallaOfflineFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/censoOfflineFragment"
+        android:name="com.dgehm.luminarias.ui.censo_offline.CensoOfflineFragment"
+        android:label="fragment_censo_offline"
+        tools:layout="@layout/fragment_censo_offline" >
+        <action
+            android:id="@+id/action_censoOfflineFragment_to_censoIngresoOfflineFragment"
+            app:destination="@id/censoIngresoOfflineFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/censoIngresoOfflineFragment"
+        android:name="com.dgehm.luminarias.ui.censo_offline.CensoIngresoOfflineFragment"
+        android:label="fragment_censo_ingreso_offline"
+        tools:layout="@layout/fragment_censo_ingreso_offline" >
+        <action
+            android:id="@+id/action_censoIngresoOfflineFragment_to_censoOfflineFragment"
+            app:destination="@id/censoOfflineFragment" />
     </fragment>
 </navigation>

@@ -302,43 +302,6 @@ class CensoIngresoFragment : Fragment() {
             }
         }
 
-        tipoFallaSpinner?.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(
-                parent: AdapterView<*>?,
-                view: View?,
-                position: Int,
-                id: Long
-            ) {
-
-
-
-                // Evitar que se ejecute en la carga inicial
-                if (isFirstSelection) {
-                    isFirstSelection = false
-                    return
-                }
-
-                Log.d("Debug","posicion: $position")
-
-                // Validar índice y obtener ID
-                if (position in tipoFallaList.indices) {
-                    val tipoFallaSeleccionado = tipoFallaList[position]
-                    tipoFallaId = tipoFallaSeleccionado.id
-                    Log.d(
-                        "Debug",
-                        "Distrito seleccionado: ${tipoFallaSeleccionado.nombre}, " +
-                                "ID: $tipoFallaId, Posición: $position"
-                    )
-                } else {
-                    Log.e("Error", "Posición fuera de rango: $position")
-                }
-
-            }
-
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
-        }
-
-
         companiaSpinner?.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(
                 parent: AdapterView<*>?,
