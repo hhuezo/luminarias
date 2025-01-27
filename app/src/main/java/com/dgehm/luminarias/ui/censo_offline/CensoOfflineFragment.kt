@@ -48,6 +48,8 @@ class CensoOfflineFragment : Fragment() {
 
         (requireActivity() as AppCompatActivity).supportActionBar?.title = "Censo luminaria"
 
+        val sharedPreferences = requireContext().getSharedPreferences("Prefs", Context.MODE_PRIVATE)
+        val usuarioId = sharedPreferences.getInt("usuarioId", -1)
 
           dbHelper = DatabaseHelper(requireContext())
 
@@ -72,7 +74,12 @@ class CensoOfflineFragment : Fragment() {
             recyclerView.layoutManager = LinearLayoutManager(requireContext())
             recyclerView.adapter = CensoOfflineAdapter(censos)
 
+
             val fab: FloatingActionButton = view.findViewById(R.id.fab)
+            if (usuarioId > 0)
+            {
+                fab.visibility = View.VISIBLE
+            }
 
             binding.fab.setOnClickListener {
                 //redicreccion al reporte de falla

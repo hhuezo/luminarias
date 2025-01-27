@@ -72,7 +72,7 @@ class CensoFragment : Fragment() , CensoAdapter.OnCensoClickListener{
 
         val sharedPreferences = requireContext().getSharedPreferences("Prefs", Context.MODE_PRIVATE)
         val usuarioId = sharedPreferences.getInt("usuarioId", -1)
-
+        Log.e("usuarioId", "usuarioId: $usuarioId")
 
         val loadingProgressBar: ProgressBar = binding.loadingProgressBar
         loadingProgressBar.visibility = View.VISIBLE
@@ -97,6 +97,10 @@ class CensoFragment : Fragment() , CensoAdapter.OnCensoClickListener{
 
 
         val fab: FloatingActionButton = view.findViewById(R.id.fab)
+        if (usuarioId > 0)
+        {
+            fab.visibility = View.VISIBLE
+        }
 
         binding.fab.setOnClickListener {
 

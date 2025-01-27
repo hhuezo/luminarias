@@ -47,6 +47,10 @@ class ReporteFallaOfflineFragment : Fragment() {
 
         (requireActivity() as AppCompatActivity).supportActionBar?.title = "Reporte falla"
 
+        val sharedPreferences = requireContext().getSharedPreferences("Prefs", Context.MODE_PRIVATE)
+        val usuarioId = sharedPreferences.getInt("usuarioId", -1)
+        Log.e("usuarioId", "usuarioId: $usuarioId")
+
 
         dbHelper = DatabaseHelper(requireContext())
 
@@ -71,6 +75,11 @@ class ReporteFallaOfflineFragment : Fragment() {
 
 
             val fab: FloatingActionButton = view.findViewById(R.id.fab)
+
+            if (usuarioId > 0)
+            {
+                fab.visibility = View.VISIBLE
+            }
 
             binding.fab.setOnClickListener {
                 //redicreccion al reporte de falla
