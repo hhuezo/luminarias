@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -85,43 +86,51 @@ class SincronizarFragment : Fragment() {
 
             context?.let { nonNullContext ->
 
-                // Verificar si la base de datos existe
-                if (dbHelper.databaseExists()) {
-                    println("Base de datos existente.")
+                if (isNetworkAvailable()) {
+                    // Verificar si la base de datos existe
+                    if (dbHelper.databaseExists()) {
+                        println("Base de datos existente.")
 
-                    // Eliminar la base de datos si existe
-                    if (dbHelper.deleteDatabase()) {
-                        println("Base de datos existente eliminada correctamente.")
-                    } else {
-                        println("No se pudo eliminar la base de datos existente.")
+                        // Eliminar la base de datos si existe
+                        if (dbHelper.deleteDatabase()) {
+                            println("Base de datos existente eliminada correctamente.")
+                        } else {
+                            println("No se pudo eliminar la base de datos existente.")
+                            Toast.makeText(
+                                nonNullContext,
+                                "Error al eliminar la base de datos.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            return@let
+                        }
+
+
+                        dbHelper.copyDatabase()
+
+
+                        UpdateDataBase()
+
                         Toast.makeText(
-                            nonNullContext,
-                            "Error al eliminar la base de datos.",
-                            Toast.LENGTH_SHORT
+                            nonNullContext, "Base de datos creó exitosamente.", Toast.LENGTH_SHORT
                         ).show()
-                        return@let
+
+
+                    } else {
+                        dbHelper.copyDatabase()
+                        Toast.makeText(
+                            nonNullContext, "Base de datos creó exitosamente.", Toast.LENGTH_SHORT
+                        ).show()
                     }
-
-
-                    dbHelper.copyDatabase()
-
-
-                    UpdateDataBase()
-
-                    Toast.makeText(
-                        nonNullContext, "Base de datos creó exitosamente.", Toast.LENGTH_SHORT
-                    ).show()
-
-
-
-
-
-                }
-                else{
-                    dbHelper.copyDatabase()
-                    Toast.makeText(
-                        nonNullContext, "Base de datos creó exitosamente.", Toast.LENGTH_SHORT
-                    ).show()
+                }else {
+                    // Si no hay conexión, lanza una IOException para capturarla
+                    requireActivity().runOnUiThread {
+                        MaterialDialog(requireContext()).show {
+                            title(text = "Error de Conexión")
+                            message(text = "No se pudo conectar a Internet. Verifica tu conexión.")
+                            icon(R.drawable.baseline_error_24)
+                            positiveButton(text = "Aceptar")
+                        }
+                    }
                 }
 
             }
@@ -133,162 +142,244 @@ class SincronizarFragment : Fragment() {
 
         btnSincronizar.setOnClickListener {
             context?.let { nonNullContext ->
+                try{
+                    if (isNetworkAvailable()) {
+                        if (dbHelper.databaseExists()) {
+                            println("Base de datos existente.")
 
-                if (dbHelper.databaseExists()) {
-                    println("Base de datos existente.")
-
-                    val reportesFalla = dbHelper.getReportesFalla()
-                    val totalReportes = reportesFalla.size
-                    var enviadosCorrectos = 0
-                    var enviadosErroneos = 0
+                            val reportesFalla = dbHelper.getReportesFalla()
+                            val totalReportes = reportesFalla.size
+                            var enviadosCorrectos = 0
+                            var enviadosErroneos = 0
 
 
-                    // Para sincronizar censos
-                    val censos = dbHelper.getCensos()
-                    val totalCensos = censos.size
+                            // Para sincronizar censos
+                            val censos = dbHelper.getCensos()
+                            val totalCensos = censos.size
 
-                    // Mostrar el ProgressBar
-                    loadingProgressBar.visibility = View.VISIBLE
+                            // Mostrar el ProgressBar
+                            loadingProgressBar.visibility = View.VISIBLE
 
-                    if (totalReportes > 0) {
-                        for (reporte in reportesFalla) {
-                            val base64String: String? = when (reporte.tipoImagen) {
-                                "1" -> convertirImagenUriABase64(requireContext(), Uri.parse(reporte.urlFoto))
-                                "2" -> convertirFotoUriABase64(requireContext(), Uri.parse(reporte.urlFoto).toString())
-                                else -> null
-                            }
+                            if (totalReportes > 0) {
+                                for (reporte in reportesFalla) {
+                                    val base64String: String? = when (reporte.tipoImagen) {
+                                        "1" -> convertirImagenUriABase64(
+                                            requireContext(),
+                                            Uri.parse(reporte.urlFoto)
+                                        )
 
-                            val json = JSONObject().apply {
-                                put("distrito_id", reporte.distritoId)
-                                put("tipo_falla_id", reporte.tipoFallaId)
-                                put("descripcion", reporte.descripcion)
-                                put("latitud", reporte.latitud)
-                                put("longitud", reporte.longitud)
-                                put("telefono_contacto", reporte.telefonoContacto)
-                                put("nombre_contacto", reporte.nombreContacto)
-                                put("correo_contacto", reporte.correoContacto)
-                                put("usuario_id", reporte.usuarioCreacion)
-                                put("fecha", reporte.fechaCreacion)
-                                put("imagen", base64String)
-                            }
+                                        "2" -> convertirFotoUriABase64(
+                                            requireContext(),
+                                            Uri.parse(reporte.urlFoto).toString()
+                                        )
 
-                            // Realizar la petición POST
-                            val endpoint = "/api_reporte_falla/sincronizar"
-                            client.post(endpoint, json.toString(), object : Callback {
-                                override fun onFailure(call: Call, e: IOException) {
-                                    enviadosErroneos++
-                                    Log.e("SyncError", "Error al enviar reporte ID ${reporte.id}: ${e.message}")
-
-                                    requireActivity().runOnUiThread {
-                                        MaterialDialog(requireContext()).show {
-                                            title(text = "Error")
-                                            message(text = "Error al hacer la petición: ${e.message}")
-                                            icon(R.drawable.baseline_error_24)
-                                            positiveButton(text = "Aceptar")
-                                        }
+                                        else -> null
                                     }
 
-                                    verificarFinalizacion(totalReportes, totalCensos, enviadosCorrectos, enviadosErroneos)
-                                }
+                                    val json = JSONObject().apply {
+                                        put("distrito_id", reporte.distritoId)
+                                        put("tipo_falla_id", reporte.tipoFallaId)
+                                        put("descripcion", reporte.descripcion)
+                                        put("latitud", reporte.latitud)
+                                        put("longitud", reporte.longitud)
+                                        put("telefono_contacto", reporte.telefonoContacto)
+                                        put("nombre_contacto", reporte.nombreContacto)
+                                        put("correo_contacto", reporte.correoContacto)
+                                        put("usuario_id", reporte.usuarioCreacion)
+                                        put("fecha", reporte.fechaCreacion)
+                                        put("imagen", base64String)
+                                    }
 
-                                override fun onResponse(call: Call, response: Response) {
-                                    requireActivity().runOnUiThread {
-                                        if (response.isSuccessful) {
-                                            enviadosCorrectos++
-                                            dbHelper.deleteReporteFallaById(reporte.id)
+                                    // Realizar la petición POST
+                                    val endpoint = "/api_reporte_falla/sincronizar"
+                                    client.post(endpoint, json.toString(), object : Callback {
+                                        override fun onFailure(call: Call, e: IOException) {
+                                            enviadosErroneos++
+                                            Log.e(
+                                                "SyncError",
+                                                "Error al enviar reporte ID ${reporte.id}: ${e.message}"
+                                            )
 
-                                            if (reporte.tipoImagen == "2") {
-                                                val uri = Uri.parse(reporte.urlFoto)
-                                                eliminarArchivo(requireContext(), uri)
+                                            requireActivity().runOnUiThread {
+                                                MaterialDialog(requireContext()).show {
+                                                    title(text = "Error")
+                                                    message(text = "Error al hacer la petición: ${e.message}")
+                                                    icon(R.drawable.baseline_error_24)
+                                                    positiveButton(text = "Aceptar")
+                                                }
                                             }
-                                        } else {
-                                            enviadosErroneos++
-                                            Log.e("SyncError", "Error en respuesta para reporte ID ${reporte.id}")
+
+                                            verificarFinalizacion(
+                                                totalReportes,
+                                                totalCensos,
+                                                enviadosCorrectos,
+                                                enviadosErroneos
+                                            )
                                         }
 
-                                        verificarFinalizacion(totalReportes, totalCensos, enviadosCorrectos, enviadosErroneos)
-                                    }
+                                        override fun onResponse(call: Call, response: Response) {
+                                            requireActivity().runOnUiThread {
+                                                if (response.isSuccessful) {
+                                                    enviadosCorrectos++
+                                                    dbHelper.deleteReporteFallaById(reporte.id)
+
+                                                    if (reporte.tipoImagen == "2") {
+                                                        val uri = Uri.parse(reporte.urlFoto)
+                                                        eliminarArchivo(requireContext(), uri)
+                                                    }
+                                                } else {
+                                                    enviadosErroneos++
+                                                    Log.e(
+                                                        "SyncError",
+                                                        "Error en respuesta para reporte ID ${reporte.id}"
+                                                    )
+                                                }
+
+                                                verificarFinalizacion(
+                                                    totalReportes,
+                                                    totalCensos,
+                                                    enviadosCorrectos,
+                                                    enviadosErroneos
+                                                )
+                                            }
+                                        }
+                                    })
                                 }
-                            })
-                        }
-                    }
-
-
-
-                    if (totalCensos > 0) {
-                        for (censo in censos) {
-
-                            val json = JSONObject().apply {
-                                put("id", censo.id)
-                                put("tipo_luminaria_id", censo.tipoLuminariaId)
-                                put("fecha", censo.fecha)
-                                put("potencia_nominal", if (censo.potenciaNominal == 0) "" else censo.potenciaNominal)
-                                put("potencia_promedio_id", censo.potenciaPromedioId)
-                                put("consumo_mensual", censo.consumoMensual)
-                                put("distrito_id", censo.distritoId)
-                                put("usuario_ingreso", censo.usuarioIngreso)
-                                put("latitud", censo.latitud)
-                                put("longitud", censo.longitud)
-                                put("usuario", censo.usuario)
-                                put("direccion", censo.direccion)
-                                put("observacion", censo.observacion)
-                                put("tipo_falla_id", censo.tipoFallaId)
-                                put("condicion_lampara", censo.condicionLampara)
-                                put("compania_id", censo.companiaId)
                             }
 
-                            // Realizar la petición POST
-                            val endpoint = "/api_censo_luminaria/sincronizar"
-                            client.post(endpoint, json.toString(), object : Callback {
-                                override fun onFailure(call: Call, e: IOException) {
-                                    enviadosErroneos++
-                                    Log.e("SyncError", "Error al enviar censo ID ${censo.id}: ${e.message}")
 
-                                    requireActivity().runOnUiThread {
-                                        MaterialDialog(requireContext()).show {
-                                            title(text = "Error")
-                                            message(text = "Error al hacer la petición: ${e.message}")
-                                            icon(R.drawable.baseline_error_24)
-                                            positiveButton(text = "Aceptar")
-                                        }
+
+                            if (totalCensos > 0) {
+                                for (censo in censos) {
+
+                                    val json = JSONObject().apply {
+                                        put("id", censo.id)
+                                        put("tipo_luminaria_id", censo.tipoLuminariaId)
+                                        put("fecha", censo.fecha)
+                                        put(
+                                            "potencia_nominal",
+                                            if (censo.potenciaNominal == 0) "" else censo.potenciaNominal
+                                        )
+                                        put("potencia_promedio_id", censo.potenciaPromedioId)
+                                        put("consumo_mensual", censo.consumoMensual)
+                                        put("distrito_id", censo.distritoId)
+                                        put("usuario_ingreso", censo.usuarioIngreso)
+                                        put("latitud", censo.latitud)
+                                        put("longitud", censo.longitud)
+                                        put("usuario", censo.usuario)
+                                        put("direccion", censo.direccion)
+                                        put("observacion", censo.observacion)
+                                        put("tipo_falla_id", censo.tipoFallaId)
+                                        put("condicion_lampara", censo.condicionLampara)
+                                        put("compania_id", censo.companiaId)
                                     }
 
-                                    verificarFinalizacion(totalReportes, totalCensos, enviadosCorrectos, enviadosErroneos)
-                                }
-
-                                override fun onResponse(call: Call, response: Response) {
-                                    requireActivity().runOnUiThread {
-                                        if (response.isSuccessful) {
-                                            enviadosCorrectos++
-                                            dbHelper.deleteCensoById(censo.id)
-                                        } else {
+                                    // Realizar la petición POST
+                                    val endpoint = "/api_censo_luminaria/sincronizar"
+                                    client.post(endpoint, json.toString(), object : Callback {
+                                        override fun onFailure(call: Call, e: IOException) {
                                             enviadosErroneos++
-                                            Log.e("SyncError", "Error en respuesta para censo ID ${censo.id}")
+                                            Log.e(
+                                                "SyncError",
+                                                "Error al enviar censo ID ${censo.id}: ${e.message}"
+                                            )
+
+                                            requireActivity().runOnUiThread {
+                                                MaterialDialog(requireContext()).show {
+                                                    title(text = "Error")
+                                                    message(text = "Error al hacer la petición: ${e.message}")
+                                                    icon(R.drawable.baseline_error_24)
+                                                    positiveButton(text = "Aceptar")
+                                                }
+                                            }
+
+                                            verificarFinalizacion(
+                                                totalReportes,
+                                                totalCensos,
+                                                enviadosCorrectos,
+                                                enviadosErroneos
+                                            )
                                         }
 
-                                        verificarFinalizacion(totalReportes, totalCensos, enviadosCorrectos, enviadosErroneos)
-                                    }
+                                        override fun onResponse(call: Call, response: Response) {
+                                            requireActivity().runOnUiThread {
+                                                if (response.isSuccessful) {
+                                                    enviadosCorrectos++
+                                                    dbHelper.deleteCensoById(censo.id)
+                                                } else {
+                                                    enviadosErroneos++
+                                                    Log.e(
+                                                        "SyncError",
+                                                        "Error en respuesta para censo ID ${censo.id}"
+                                                    )
+                                                }
+
+                                                verificarFinalizacion(
+                                                    totalReportes,
+                                                    totalCensos,
+                                                    enviadosCorrectos,
+                                                    enviadosErroneos
+                                                )
+                                            }
+                                        }
+                                    })
                                 }
-                            })
+                            }
+
+
+                            UpdateDataBase()
+
+                            if (totalReportes == 0 && totalCensos == 0) {
+                                loadingProgressBar.visibility = View.GONE
+                                Toast.makeText(
+                                    requireContext(),
+                                    "Todos los datos fueron actualizados correctamente",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                        } else {
+                            dbHelper.copyDatabase()
+                            Toast.makeText(
+                                nonNullContext,
+                                "Base de datos creada exitosamente.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    } else {
+                        // Si no hay conexión, lanza una IOException para capturarla
+                        throw IOException("No se puede conectar a Internet.")
+                    }
+                } catch (e: IOException) {
+                    // Captura la excepción IOException (falta de conexión)
+                    requireActivity().runOnUiThread {
+                        MaterialDialog(requireContext()).show {
+                            title(text = "Error de Conexión")
+                            message(text = "No se pudo conectar a Internet. Verifica tu conexión.")
+                            icon(R.drawable.baseline_error_24)
+                            positiveButton(text = "Aceptar")
                         }
                     }
-
-
-                    UpdateDataBase()
-
-                    if(totalReportes == 0 && totalCensos == 0)
-                    {
-                        loadingProgressBar.visibility = View.GONE
-                        Toast.makeText(requireContext(), "Todos los datos fueron actualizados correctamente", Toast.LENGTH_LONG).show()
+                } catch (e: Exception) {
+                    // Captura cualquier otra excepción general
+                    requireActivity().runOnUiThread {
+                        MaterialDialog(requireContext()).show {
+                            title(text = "Error")
+                            message(text = "Ocurrió un error inesperado: ${e.message}")
+                            icon(R.drawable.baseline_error_24)
+                            positiveButton(text = "Aceptar")
+                        }
                     }
-                } else {
-                    dbHelper.copyDatabase()
-                    Toast.makeText(nonNullContext, "Base de datos creada exitosamente.", Toast.LENGTH_SHORT).show()
                 }
             } ?: run {
                 Toast.makeText(requireContext(), "El contexto es nulo", Toast.LENGTH_SHORT).show()
             }
+
         }
+
+
+
+
+
 
 
 
@@ -581,6 +672,15 @@ class SincronizarFragment : Fragment() {
             }
         }
     }
+
+
+    //verificar si hay internet
+    fun isNetworkAvailable(): Boolean {
+        val connectivityManager = requireContext().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val activeNetwork = connectivityManager.activeNetworkInfo
+        return activeNetwork != null && activeNetwork.isConnected
+    }
+
 
 
 }
