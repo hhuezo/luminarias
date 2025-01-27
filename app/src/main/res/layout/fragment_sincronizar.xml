@@ -36,12 +36,12 @@
         android:id="@+id/btnReiniciar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_gravity="center"
         android:layout_marginTop="50dp"
-        android:text="Reiniciar"
         android:backgroundTint="@color/purple_200"
         android:padding="16dp"
-        android:textSize="16sp"
-        android:layout_gravity="center" />
+        android:text="Iniciar Datos"
+        android:textSize="16sp" />
 
     <!-- Button Reiniciar -->
 

@@ -32,6 +32,11 @@ import android.widget.ProgressBar
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.dgehm.luminarias.GlobalUbicacion
+import com.dgehm.luminarias.model.ApiResponse
+import com.dgehm.luminarias.model.ReporteFallaAdapter
+import com.dgehm.luminarias.model.ResponseReporteFallaIndex
+import com.google.gson.Gson
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 
@@ -56,6 +61,9 @@ class SincronizarFragment : Fragment() {
 
         // Cambiar el título de la ActionBar
         (activity as? AppCompatActivity)?.supportActionBar?.title = "Sincronizar"
+
+
+
 
         dbHelper = DatabaseHelper(requireContext())
 
@@ -96,9 +104,17 @@ class SincronizarFragment : Fragment() {
 
 
                     dbHelper.copyDatabase()
+
+
+                    UpdateDataBase()
+
                     Toast.makeText(
                         nonNullContext, "Base de datos creó exitosamente.", Toast.LENGTH_SHORT
                     ).show()
+
+
+
+
 
                 }
                 else{
@@ -258,7 +274,13 @@ class SincronizarFragment : Fragment() {
                     }
 
 
+                    UpdateDataBase()
 
+                    if(totalReportes == 0 && totalCensos == 0)
+                    {
+                        loadingProgressBar.visibility = View.GONE
+                        Toast.makeText(requireContext(), "Todos los datos fueron actualizados correctamente", Toast.LENGTH_LONG).show()
+                    }
                 } else {
                     dbHelper.copyDatabase()
                     Toast.makeText(nonNullContext, "Base de datos creada exitosamente.", Toast.LENGTH_SHORT).show()
@@ -274,6 +296,65 @@ class SincronizarFragment : Fragment() {
 
         return binding.root
     }
+
+
+    fun UpdateDataBase()
+    {
+        val usuarioId: Int? = GlobalUbicacion.usuarioId
+        client.get("/update_data?usuario_id=$usuarioId", object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                // Manejo de error al fallar la solicitud
+                Log.e("API_ERROR", "Fallo al obtener los datos: ${e.message}")
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                try {
+                    val responseData = response.body?.string()
+
+                    //Log.d("response", "res: $responseData")
+
+                    if (responseData != null) {
+                        Log.d("API_RESPONSE", responseData)
+
+                        val gson = Gson()
+                        val dataResponse = gson.fromJson(responseData, ApiResponse::class.java)
+                        val data = dataResponse?.data
+
+
+                        val dbHelper = DatabaseHelper(requireContext())
+
+
+                        val potencias = data?.potencias ?: emptyList()
+                        val tiposFalla = data?.tiposFalla ?: emptyList()
+                        val tiposLuminaria = data?.tiposLuminaria ?: emptyList()
+                        val companias = data?.companias ?: emptyList()
+                        val departamentos = data?.departamentos ?: emptyList()
+                        val municipios = data?.municipios ?: emptyList()
+                        val distritos = data?.distritos ?: emptyList()
+
+                        dbHelper.updateDbCompania(companias)
+                        dbHelper.updateDbPotencia(potencias)
+                        dbHelper.updateDbTipoFalla(tiposFalla)
+                        dbHelper.updateDbLuminaria(tiposLuminaria)
+
+
+
+                        //val data = dataResponse?.data ?: emptyList()
+
+                       // Log.e("API_ERROR", "potencias  .$potencias  tipos falla: $tiposFalla tipos luminaria: $tiposLuminaria")
+                    } else {
+                        Log.e("API_ERROR", "El cuerpo de la respuesta es nulo.")
+
+                    }
+                } catch (e: Exception) {
+                    Log.e("API_ERROR", "Error procesando la respuesta: ${e.message}")
+
+                }
+            }
+        })
+    }
+
+
 
     // Función para convertir una foto en Base64
     fun convertirFotoUriABase64(context: Context, uriString: String?): String? {

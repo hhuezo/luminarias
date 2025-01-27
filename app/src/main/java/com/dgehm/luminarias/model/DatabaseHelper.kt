@@ -4,8 +4,12 @@ import android.database.sqlite.SQLiteDatabase
 import android.util.Log
 import com.dgehm.luminarias.model.CensoOffline
 import com.dgehm.luminarias.model.CensoOfflineList
+import com.dgehm.luminarias.model.CompaniaResponse
+import com.dgehm.luminarias.model.PotenciaResponse
 import com.dgehm.luminarias.model.ReporteFallaOffline
 import com.dgehm.luminarias.model.ReporteFallaOfflineList
+import com.dgehm.luminarias.model.TipoFallaResponse
+import com.dgehm.luminarias.model.TipoLuminariaResponse
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -63,6 +67,233 @@ class DatabaseHelper(private val context: Context) {
             println("Error al copiar la base de datos: ${e.message}")
         }
     }
+
+
+
+    fun updateDbCompania(companias: List<CompaniaResponse>) {
+        val db = SQLiteDatabase.openDatabase(databasePath, null, SQLiteDatabase.OPEN_READWRITE)
+
+        try {
+            db.beginTransaction()
+
+            for (compania in companias) {
+                val query = "SELECT id FROM compania WHERE id = ?"
+                val cursor = db.rawQuery(query, arrayOf(compania.id.toString()))
+
+                val values = ContentValues().apply {
+                    put("id", compania.id)
+                    put("nombre", compania.nombre)
+                }
+
+                if (cursor.moveToFirst()) {
+                    // Si la compañía ya existe, se actualiza
+                    db.update("compania", values, "id = ?", arrayOf(compania.id.toString()))
+                } else {
+                    // Si no existe, se inserta
+                    db.insert("compania", null, values)
+                }
+
+                cursor.close()
+            }
+
+            db.setTransactionSuccessful()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            db.endTransaction()
+
+            // Consultar y mostrar los datos después de la actualización
+            val cursor = db.rawQuery("SELECT * FROM compania", null)
+            val logResult = StringBuilder("Datos en compania después del update:\n")
+
+            if (cursor.moveToFirst()) {
+                do {
+                    val id = cursor.getInt(cursor.getColumnIndexOrThrow("id"))
+                    val nombre = cursor.getString(cursor.getColumnIndexOrThrow("nombre"))
+
+                    logResult.append("ID: $id, Nombre: $nombre\n")
+                } while (cursor.moveToNext())
+            } else {
+                logResult.append("No hay datos en la tabla.")
+            }
+
+            cursor.close()
+            db.close()
+
+            Log.d("DB_UPDATE", logResult.toString()) // Mostrar en el log
+        }
+    }
+
+    fun updateDbTipoFalla(tipos: List<TipoFallaResponse>) {
+        val db = SQLiteDatabase.openDatabase(databasePath, null, SQLiteDatabase.OPEN_READWRITE)
+
+        try {
+            db.beginTransaction()
+
+            for (tipo in tipos) {
+                val query = "SELECT id FROM tipo_falla WHERE id = ?"
+                val cursor = db.rawQuery(query, arrayOf(tipo.id.toString()))
+
+                val values = ContentValues().apply {
+                    put("id", tipo.id)
+                    put("nombre", tipo.nombre)
+                }
+
+                if (cursor.moveToFirst()) {
+                    // Si el tipo de falla ya existe, se actualiza
+                    db.update("tipo_falla", values, "id = ?", arrayOf(tipo.id.toString()))
+                } else {
+                    // Si no existe, se inserta
+                    db.insert("tipo_falla", null, values)
+                }
+
+                cursor.close()
+            }
+
+            db.setTransactionSuccessful()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            db.endTransaction()
+
+            // Consultar y mostrar los datos después de la actualización
+            val cursor = db.rawQuery("SELECT * FROM tipo_falla", null)
+            val logResult = StringBuilder("Datos en tipo_falla después del update:\n")
+
+            if (cursor.moveToFirst()) {
+                do {
+                    val id = cursor.getInt(cursor.getColumnIndexOrThrow("id"))
+                    val nombre = cursor.getString(cursor.getColumnIndexOrThrow("nombre"))
+
+                    logResult.append("ID: $id, Nombre: $nombre\n")
+                } while (cursor.moveToNext())
+            } else {
+                logResult.append("No hay datos en la tabla.")
+            }
+
+            cursor.close()
+            db.close()
+
+            Log.d("DB_UPDATE", logResult.toString()) // Mostrar en el log
+        }
+    }
+
+    fun updateDbLuminaria(tipos: List<TipoLuminariaResponse>) {
+        val db = SQLiteDatabase.openDatabase(databasePath, null, SQLiteDatabase.OPEN_READWRITE)
+
+        try {
+            db.beginTransaction()
+
+            for (tipo in tipos) {
+                val query = "SELECT id FROM tipo_luminaria WHERE id = ?"
+                val cursor = db.rawQuery(query, arrayOf(tipo.id.toString()))
+
+                val values = ContentValues().apply {
+                    put("id", tipo.id)
+                    put("nombre", tipo.nombre)
+                }
+
+                if (cursor.moveToFirst()) {
+                    // Si el tipo de luminaria ya existe, se actualiza
+                    db.update("tipo_luminaria", values, "id = ?", arrayOf(tipo.id.toString()))
+                } else {
+                    // Si no existe, se inserta
+                    db.insert("tipo_luminaria", null, values)
+                }
+
+                cursor.close()
+            }
+
+            db.setTransactionSuccessful()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            db.endTransaction()
+
+            // Consultar y mostrar los datos después de la actualización
+            val cursor = db.rawQuery("SELECT * FROM tipo_luminaria", null)
+            val logResult = StringBuilder("Datos en tipo_luminaria después del update:\n")
+
+            if (cursor.moveToFirst()) {
+                do {
+                    val id = cursor.getInt(cursor.getColumnIndexOrThrow("id"))
+                    val nombre = cursor.getString(cursor.getColumnIndexOrThrow("nombre"))
+
+                    logResult.append("ID: $id, Nombre: $nombre\n")
+                } while (cursor.moveToNext())
+            } else {
+                logResult.append("No hay datos en la tabla.")
+            }
+
+            cursor.close()
+            db.close()
+
+            Log.d("DB_UPDATE", logResult.toString()) // Mostrar en el log
+        }
+    }
+
+
+
+    fun updateDbPotencia(potencias: List<PotenciaResponse>) {
+        val db = SQLiteDatabase.openDatabase(databasePath, null, SQLiteDatabase.OPEN_READWRITE)
+
+        try {
+            db.beginTransaction()
+
+            for (potencia in potencias) {
+                val query = "SELECT id FROM potencia_promedio WHERE id = ?"
+                val cursor = db.rawQuery(query, arrayOf(potencia.id.toString()))
+
+                val values = ContentValues().apply {
+                    put("id", potencia.id)
+                    put("tipo_luminaria_id", potencia.tipoLuminariaId)
+                    put("potencia", potencia.potencia)
+                    put("consumo_promedio", potencia.ConsumoPromedio)
+                }
+
+                if (cursor.moveToFirst()) {
+                    // Si la potencia ya existe, se actualiza
+                    db.update("potencia_promedio", values, "id = ?", arrayOf(potencia.id.toString()))
+                } else {
+                    // Si no existe, se inserta
+                    db.insert("potencia_promedio", null, values)
+                }
+
+                cursor.close()
+            }
+
+            db.setTransactionSuccessful()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            db.endTransaction()
+
+            // Consultar y mostrar los datos después de la actualización
+            val cursor = db.rawQuery("SELECT * FROM potencia_promedio", null)
+            val logResult = StringBuilder("Datos en potencia_promedio después del update:\n")
+
+            if (cursor.moveToFirst()) {
+                do {
+                    val id = cursor.getInt(cursor.getColumnIndexOrThrow("id"))
+                    val tipoLuminariaId = cursor.getInt(cursor.getColumnIndexOrThrow("tipo_luminaria_id"))
+                    val potencia = cursor.getDouble(cursor.getColumnIndexOrThrow("potencia"))
+                    val consumoPromedio = cursor.getDouble(cursor.getColumnIndexOrThrow("consumo_promedio"))
+
+                    logResult.append("ID: $id, TipoLuminariaID: $tipoLuminariaId, Potencia: $potencia, ConsumoPromedio: $consumoPromedio\n")
+                } while (cursor.moveToNext())
+            } else {
+                logResult.append("No hay datos en la tabla.")
+            }
+
+            cursor.close()
+            db.close()
+
+            Log.d("DB_UPDATE", logResult.toString()) // Mostrar en el log
+        }
+    }
+
+
+
 
 
     // Método para obtener los departamentos
