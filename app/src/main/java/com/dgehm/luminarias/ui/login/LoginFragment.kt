@@ -108,20 +108,26 @@ class LoginFragment : Fragment() {
             val editor = sharedPreferences.edit()
             editor.putInt("usuarioId", 0)  // Guardar usuarioId
             editor.putString("usuario", "")  // Guardar usuario
+            editor.putInt("desconectado", 0)
             editor.apply()
 
             userId = 0
             userName = ""
-
-
             texHome.setText("Bienvenido $userName")
-
-
-
 
             cardLogin.visibility = View.VISIBLE
             cardHome.visibility = View.GONE
             cardOffline.visibility = View.GONE
+
+            val toast = Toast.makeText(requireContext(), "Modo offline desactivado", Toast.LENGTH_LONG)
+            toast.show()
+
+            // Reiniciar la actividad principal desde el fragmento
+            activity?.let {
+                val intent = it.intent
+                it.finish()
+                it.startActivity(intent)
+            }
         }
 
         buttonSincronizar.setOnClickListener {
