@@ -1,6 +1,7 @@
 package com.dgehm.luminarias.ui.reporte_falla
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -434,6 +435,15 @@ class ReporteFallaMapaFragment : Fragment(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
         checkLocationPermission()
+
+        val sharedPreferences = requireContext().getSharedPreferences("Prefs", Context.MODE_PRIVATE)
+        val tipoMapaPreferences = sharedPreferences.getInt("tipoMapa", 1)
+
+
+        if(tipoMapaPreferences == 2)
+        {
+            mMap.mapType = GoogleMap.MAP_TYPE_SATELLITE  // Mapa en modo satelital
+        }
 
         if (ActivityCompat.checkSelfPermission(
                 requireContext(),

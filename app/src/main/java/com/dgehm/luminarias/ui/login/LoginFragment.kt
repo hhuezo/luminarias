@@ -58,16 +58,20 @@ class LoginFragment : Fragment() {
         val cardOffline = binding.cardOffline
         val cardHome = binding.cardHome
         val texHome = binding.texHome
+        val cardMapa = binding.cardMapa
 
         var userName = GlobalUbicacion.usuario
         var userId: Int? = GlobalUbicacion.usuarioId
 
         val switchOffline = binding.switchOffline
 
+        val switchMapa = binding.switchMapa
+
         val sharedPreferences = requireContext().getSharedPreferences("Prefs", Context.MODE_PRIVATE)
         val desconectado = sharedPreferences.getInt("desconectado", 0) // Valor por defecto -1 si no existe
         val usuarioIdPreferences = sharedPreferences.getInt("usuarioId", 0) // Valor por defecto -1 si no existe
         val usuarioPreferences = sharedPreferences.getString("usuario", "")
+        val tipoMapaPreferences = sharedPreferences.getInt("tipoMapa", 1)
 
         Log.e("preferencia", "preferencia $usuarioIdPreferences")
 
@@ -76,6 +80,15 @@ class LoginFragment : Fragment() {
             switchOffline.isChecked = true // Activar el Switch
         } else {
             switchOffline.isChecked = false // Desactivar el Switch
+        }
+
+        if (tipoMapaPreferences == 1)
+        {
+            switchMapa.isChecked = false
+        }
+        else if(tipoMapaPreferences == 2)
+        {
+            switchMapa.isChecked = true
         }
 
         if (usuarioIdPreferences != 0)
@@ -88,6 +101,7 @@ class LoginFragment : Fragment() {
 
 
         cardOffline.visibility = View.GONE
+        cardMapa.visibility = View.GONE
 
         if (userId != null) {
             if(userId > 0)
@@ -96,6 +110,7 @@ class LoginFragment : Fragment() {
                 cardLogin.visibility = View.GONE
                 cardHome.visibility = View.VISIBLE
                 cardOffline.visibility = View.VISIBLE
+                cardMapa.visibility = View.VISIBLE
             }
         }
 
@@ -167,6 +182,33 @@ class LoginFragment : Fragment() {
                 it.startActivity(intent)
             }
         }
+
+
+
+        switchMapa.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+
+                // Guardar en SharedPreferences
+                val sharedPreferences = requireContext().getSharedPreferences("Prefs", Context.MODE_PRIVATE)
+                val editor = sharedPreferences.edit()
+                editor.putInt("tipoMapa", 2)
+                editor.apply()  // Aplicar los cambios
+
+                val toast = Toast.makeText(requireContext(), "Modo satelite activado", Toast.LENGTH_LONG)
+                toast.show()
+            } else {
+                // Guardar en SharedPreferences
+                val sharedPreferences = requireContext().getSharedPreferences("Prefs", Context.MODE_PRIVATE)
+                val editor = sharedPreferences.edit()
+                editor.putInt("tipoMapa", 1)
+                editor.apply()  // Aplicar los cambios
+
+                val toast = Toast.makeText(requireContext(), "Modo normal activado", Toast.LENGTH_LONG)
+                toast.show()
+            }
+
+        }
+
 
 
 
@@ -255,6 +297,7 @@ class LoginFragment : Fragment() {
                             cardLogin.visibility = View.GONE
                             cardHome.visibility = View.VISIBLE
                             cardOffline.visibility = View.VISIBLE
+                            cardMapa.visibility = View.VISIBLE
                         } else {
                             val dialog = MaterialDialog(requireContext()).show {
                                 title(text = "Error")
