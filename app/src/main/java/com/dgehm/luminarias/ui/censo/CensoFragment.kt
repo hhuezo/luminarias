@@ -70,7 +70,8 @@ class CensoFragment : Fragment() , CensoAdapter.OnCensoClickListener{
         GlobalUbicacion.municipioId = 0
         GlobalUbicacion.direccion = ""
 
-        val usuarioId: Int? = GlobalUbicacion.usuarioId
+        val sharedPreferences = requireContext().getSharedPreferences("Prefs", Context.MODE_PRIVATE)
+        val usuarioId = sharedPreferences.getInt("usuarioId", -1)
 
 
         val loadingProgressBar: ProgressBar = binding.loadingProgressBar
@@ -81,17 +82,12 @@ class CensoFragment : Fragment() , CensoAdapter.OnCensoClickListener{
         // Obtener la fecha actual
         val currentDate = LocalDate.now()
 
-        // Obtener el primer día del mes actual
-        val primerDiaDelMes = currentDate.with(TemporalAdjusters.firstDayOfMonth())
-
         // Formatear la fecha en el formato deseado (por ejemplo, "dd/MM/yyyy")
-        val primerDiaFormateado = primerDiaDelMes.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+        val fechaFormateada = currentDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
 
-        // Obtener el último día del mes actual
-        val ultimoDiaDelMes = currentDate.with(TemporalAdjusters.lastDayOfMonth())
-
-        // Formatear la fecha en el formato deseado
-        val ultimoDiaFormateado = ultimoDiaDelMes.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+        // La fecha del primer y último día del mes serán iguales, ya que se ajustan a la fecha actual
+        val primerDiaFormateado = fechaFormateada
+        val ultimoDiaFormateado = fechaFormateada
 
 
         fechasText?.setText(primerDiaFormateado + " - " + ultimoDiaFormateado)

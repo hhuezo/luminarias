@@ -164,8 +164,7 @@ class ReporteFallaMapaFragment : Fragment(), OnMapReadyCallback {
             setDisplayHomeAsUpEnabled(true) // Muestra el botón de retroceso
         }
 
-
-        // Manejar la acción del botón de retroceso
+         // Manejar la acción del botón de retroceso
         requireActivity().onBackPressedDispatcher.addCallback(this) {
             parentFragmentManager.popBackStack()
         }
@@ -515,4 +514,5 @@ class ReporteFallaMapaFragment : Fragment(), OnMapReadyCallback {
         super.onLowMemory()
         mapView.onLowMemory()
     }
+
 }
