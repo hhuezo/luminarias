@@ -110,7 +110,7 @@
                     android:layout_marginBottom="16dp"
                     android:inputType="textPassword"
                     android:padding="12dp"
-                    android:text="12345678" />
+                    android:text="" />
 
                 <!-- Botón de inicio de sesión -->
                 <Button

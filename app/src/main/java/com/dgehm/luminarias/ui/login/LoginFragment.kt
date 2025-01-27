@@ -69,6 +69,7 @@ class LoginFragment : Fragment() {
         val usuarioIdPreferences = sharedPreferences.getInt("usuarioId", 0) // Valor por defecto -1 si no existe
         val usuarioPreferences = sharedPreferences.getString("usuario", "")
 
+        Log.e("preferencia", "preferencia $usuarioIdPreferences")
 
         // Configurar el estado del Switch
         if (desconectado == 1) {
@@ -102,7 +103,20 @@ class LoginFragment : Fragment() {
             GlobalUbicacion.usuarioId = 0
             GlobalUbicacion.usuario = ""
 
+            // Guardar en SharedPreferences
+            val sharedPreferences = requireContext().getSharedPreferences("Prefs", Context.MODE_PRIVATE)
+            val editor = sharedPreferences.edit()
+            editor.putInt("usuarioId", 0)  // Guardar usuarioId
+            editor.putString("usuario", "")  // Guardar usuario
+            editor.apply()
+
+            userId = 0
+            userName = ""
+
+
             texHome.setText("Bienvenido $userName")
+
+
 
 
             cardLogin.visibility = View.VISIBLE
