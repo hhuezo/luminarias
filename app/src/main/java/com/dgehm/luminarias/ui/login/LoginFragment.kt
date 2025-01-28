@@ -281,6 +281,7 @@ class LoginFragment : Fragment() {
                             // Acceder a los valores
                             val userId = apiResponse.user.id
                             val userName = apiResponse.user.name
+                            val correo = apiResponse.user.email
 
                             GlobalUbicacion.usuarioId = userId
                             GlobalUbicacion.usuario = userName
@@ -290,6 +291,7 @@ class LoginFragment : Fragment() {
                             val editor = sharedPreferences.edit()
                             editor.putInt("usuarioId", userId)  // Guardar usuarioId
                             editor.putString("usuario", userName)  // Guardar usuario
+                            editor.putString("correo", email)
                             editor.apply()  // Aplicar los cambios
 
                             texHome.text = "Bienvenido $userName"

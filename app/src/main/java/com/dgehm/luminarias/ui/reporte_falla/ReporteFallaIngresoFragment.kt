@@ -1,6 +1,7 @@
 package com.dgehm.luminarias.ui.reporte_falla
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -138,6 +139,20 @@ class ReporteFallaIngresoFragment : Fragment() {
         val editCorreoContacto: EditText = view.findViewById(R.id.editCorreoContacto)
 
         val btnAceptar: Button = view.findViewById(R.id.btnAceptar)
+
+        val sharedPreferences = requireContext().getSharedPreferences("Prefs", Context.MODE_PRIVATE)
+        val correoPreference = sharedPreferences.getString("correo", "")
+        val usuarioPreference = sharedPreferences.getString("usuario", "")
+
+        if(correoPreference != "")
+        {
+            editCorreoContacto.setText(correoPreference)
+        }
+
+        if(usuarioPreference != "")
+        {
+            editNombreContacto.setText(usuarioPreference)
+        }
 
         if (departamentoId != 0)
         {

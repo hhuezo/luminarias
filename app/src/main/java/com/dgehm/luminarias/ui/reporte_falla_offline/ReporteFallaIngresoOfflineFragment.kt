@@ -95,6 +95,8 @@ class ReporteFallaIngresoOfflineFragment : Fragment() {
 
         val sharedPreferences = requireContext().getSharedPreferences("Prefs", Context.MODE_PRIVATE)
         val usuarioId = sharedPreferences.getInt("usuarioId", 0)
+        val correoPreference = sharedPreferences.getString("correo", "")
+        val usuarioPreference = sharedPreferences.getString("usuario", "")
 
         if (usuarioId == 0) {
             Toast.makeText(requireContext(), "Error: Usuario no encontrado", Toast.LENGTH_LONG).show()
@@ -116,6 +118,17 @@ class ReporteFallaIngresoOfflineFragment : Fragment() {
         editLatitude = view.findViewById(R.id.editLatitude)
         editLongitude = view.findViewById(R.id.editLongitude)
         loadingProgressBar = view.findViewById(R.id.loadingProgressBar)
+
+
+        if(correoPreference != "")
+        {
+            editCorreoContacto.setText(correoPreference)
+        }
+
+        if(usuarioPreference != "")
+        {
+            editNombreContacto.setText(usuarioPreference)
+        }
 
 
 
