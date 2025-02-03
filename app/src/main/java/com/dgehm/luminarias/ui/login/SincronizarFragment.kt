@@ -252,6 +252,20 @@ class SincronizarFragment : Fragment() {
                             if (totalCensos > 0) {
                                 for (censo in censos) {
 
+                                    val base64String: String? = when (censo.tipoImagen) {
+                                        "1" -> convertirImagenUriABase64(
+                                            requireContext(),
+                                            Uri.parse(censo.urlFoto)
+                                        )
+
+                                        "2" -> convertirFotoUriABase64(
+                                            requireContext(),
+                                            Uri.parse(censo.urlFoto).toString()
+                                        )
+
+                                        else -> null
+                                    }
+
                                     val json = JSONObject().apply {
                                         put("id", censo.id)
                                         put("tipo_luminaria_id", censo.tipoLuminariaId)
@@ -272,7 +286,11 @@ class SincronizarFragment : Fragment() {
                                         put("tipo_falla_id", censo.tipoFallaId)
                                         put("condicion_lampara", censo.condicionLampara)
                                         put("compania_id", censo.companiaId)
+                                        put("imagen", base64String)
                                     }
+
+
+
 
                                     // Realizar la petición POST
                                     val endpoint = "/api_censo_luminaria/sincronizar"
@@ -308,6 +326,10 @@ class SincronizarFragment : Fragment() {
                                                     dbHelper.deleteCensoById(censo.id)
                                                 } else {
                                                     enviadosErroneos++
+                                                    if (censo.tipoImagen == "2") {
+                                                        val uri = Uri.parse(censo.urlFoto)
+                                                        eliminarArchivo(requireContext(), uri)
+                                                    }
                                                     Log.e(
                                                         "SyncError",
                                                         "Error en respuesta para censo ID ${censo.id}"

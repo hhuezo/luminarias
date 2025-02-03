@@ -124,6 +124,7 @@ class LoginFragment : Fragment() {
             editor.putInt("usuarioId", 0)  // Guardar usuarioId
             editor.putString("usuario", "")  // Guardar usuario
             editor.putInt("desconectado", 0)
+            editor.putString("correo", "")
             editor.apply()
 
             userId = 0

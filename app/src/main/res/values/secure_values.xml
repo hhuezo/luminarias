@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="API_HOST">https://dgehm.coopweb.info/public/api</string>
+    <!--<string name="API_HOST">https://dgehm.coopweb.info/public/api</string>-->
     <!--  <string name="API_HOST">http://172.20.10.2/alumbrado_electrico/public/api</string>-->
-    <!--<string name="API_HOST">http://192.168.1.96/alumbrado_electrico/public/api</string>-->
+    <string name="API_HOST">http://192.168.1.96/alumbrado_electrico/public/api</string>
      <string name="KEY">Basic dXNlcjpwYXNz</string>
      <string name="google_maps_api_key">AIzaSyDGYK-xTISJUVZC-pUBj1Zd3sMiUCdXUeg</string>
 

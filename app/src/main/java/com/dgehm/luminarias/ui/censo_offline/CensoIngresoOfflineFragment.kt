@@ -2,15 +2,20 @@ package com.dgehm.luminarias.ui.censo_offline
 
 import DatabaseHelper
 import android.Manifest
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.os.Handler
 import android.os.Looper
+import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
@@ -23,6 +28,7 @@ import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.Spinner
 import android.widget.Switch
@@ -30,6 +36,8 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.navigation.fragment.findNavController
 import com.afollestad.materialdialogs.MaterialDialog
 import com.dgehm.luminarias.R
@@ -44,7 +52,11 @@ import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Response
 import org.json.JSONObject
+import java.io.File
 import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 
 class CensoIngresoOfflineFragment : Fragment() {
@@ -52,6 +64,17 @@ class CensoIngresoOfflineFragment : Fragment() {
     private var _binding: FragmentCensoIngresoOfflineBinding? = null
     private val binding get() = _binding!!
 
+
+    private lateinit var btnAdjuntarFoto: ImageView
+    private lateinit var btnTomarFoto: ImageView
+    private lateinit var imageViewFoto: ImageView
+
+    private val PICK_IMAGE_REQUEST = 1
+    private val CAMERA_REQUEST = 2
+    private var photoUri: Uri? = null
+    private val REQUEST_IMAGE_CAPTURE = 1
+    private var imagenBase64: String? = null
+    private var tipoImagen: String? = null
 
 
     private lateinit var editLatitude: EditText
@@ -399,6 +422,21 @@ class CensoIngresoOfflineFragment : Fragment() {
         }
 
 
+
+        btnAdjuntarFoto = view.findViewById(R.id.btnAdjuntarFoto)
+        btnTomarFoto = view.findViewById(R.id.btnTomarFoto)
+        imageViewFoto = view.findViewById(R.id.imageViewFoto)
+
+        btnAdjuntarFoto.setOnClickListener {
+            openGallery()
+        }
+
+        btnTomarFoto.setOnClickListener {
+            checkPermissions()
+        }
+
+
+
         btnAceptar.setOnClickListener {
             // Acción a realizar cuando se hace clic en el botón
             Log.d("Debug", "Botón Aceptar presionado")
@@ -572,7 +610,9 @@ class CensoIngresoOfflineFragment : Fragment() {
                 observacion,
                 tipoFallaId,
                 lamparaCondicion,
-                companiaId
+                companiaId,
+                photoUri.toString(),
+                tipoImagen
             )
 
             // Verificar si la inserción fue exitosa
@@ -695,6 +735,84 @@ class CensoIngresoOfflineFragment : Fragment() {
             Toast.makeText(requireContext(), "No se encontraron potencias.", Toast.LENGTH_SHORT).show()
         }
 
+    }
+
+
+
+
+    private fun openGallery() {
+        // Intent para seleccionar una imagen de la galería
+        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        startActivityForResult(intent, PICK_IMAGE_REQUEST)
+    }
+
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode == Activity.RESULT_OK) {
+            when (requestCode) {
+                // Para galería
+                PICK_IMAGE_REQUEST -> {
+                    data?.data?.let { uri ->
+                        photoUri = uri
+                        tipoImagen = "1"
+                        imageViewFoto.setImageURI(uri)
+                        // Hacer visible el ImageView
+                        imageViewFoto.visibility = View.VISIBLE
+                    }
+                }
+
+                // Para cámara
+                CAMERA_REQUEST -> {
+                    photoUri?.let { uri ->
+                        imageViewFoto.setImageURI(uri)
+                        tipoImagen = "2"
+                        // Hacer visible el ImageView
+                        imageViewFoto.visibility = View.VISIBLE
+                    }
+                }
+            }
+        }
+    }
+
+
+    // Método para verificar permisos
+    private fun checkPermissions() {
+        val cameraPermission = ContextCompat.checkSelfPermission(requireContext(), android.Manifest.permission.CAMERA)
+
+        if (cameraPermission != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                requireActivity(),
+                arrayOf(android.Manifest.permission.CAMERA),
+                REQUEST_IMAGE_CAPTURE
+            )
+        } else {
+            openCamera()  // Si el permiso está concedido, abrir la cámara
+        }
+    }
+
+    // Método para abrir la cámara
+    private fun openCamera() {
+        val photoFile = createImageFile()
+        photoUri = FileProvider.getUriForFile(
+            requireContext(),
+            "com.dgehm.luminarias.fileprovider",
+            photoFile
+        )
+        val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
+            putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
+        }
+        startActivityForResult(cameraIntent, CAMERA_REQUEST)
+    }
+
+    // Método para convertir la imagen de la URI a Base64
+    private fun createImageFile(): File {
+        val storageDir = requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        return File.createTempFile(
+            "JPEG_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())}_",
+            ".jpg",
+            storageDir
+        )
     }
 
 

@@ -31,6 +31,8 @@ data class CensoOffline(
     val observacion: String?,
     val tipoFallaId: Int?,
     val condicionLampara: Int,
-    val companiaId: Int?
+    val companiaId: Int?,
+    val urlFoto: String?,
+    val tipoImagen : String?
 )
 

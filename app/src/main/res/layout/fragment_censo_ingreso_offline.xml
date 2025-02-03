@@ -279,6 +279,77 @@
 
 
         <!-- ImageView to display the selected photo -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <!-- Icon for attaching photo (left) -->
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center">
+
+                <ImageView
+                    android:id="@+id/btnAdjuntarFoto"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginEnd="16dp"
+                    android:contentDescription="Adjuntar Foto"
+                    android:src="@drawable/baseline_attach_file_24" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Adjuntar Foto"
+                    android:textSize="12sp"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center"
+                    android:textColor="@android:color/black" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="end">
+
+                <ImageView
+                    android:id="@+id/btnTomarFoto"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="end"
+                    android:contentDescription="Tomar Foto"
+                    android:src="@drawable/baseline_photo_camera_24" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tomar Foto"
+                    android:textSize="12sp"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center"
+                    android:textColor="@android:color/black" />
+            </LinearLayout>
+
+
+
+            <!-- Icon for taking photo (right) -->
+        </LinearLayout>
+
+
+        <!-- ImageView to display the selected photo -->
+        <ImageView
+            android:id="@+id/imageViewFoto"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_marginTop="16dp"
+            android:scaleType="centerCrop"
+            android:visibility="gone" />
 
         <!-- Send Button -->
         <Button

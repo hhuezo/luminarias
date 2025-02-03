@@ -1,11 +1,20 @@
 package com.dgehm.luminarias.ui.censo
 
+import android.app.Activity
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.os.Handler
 import android.os.Looper
+import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Base64
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -15,12 +24,17 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.Spinner
 import android.widget.Switch
 import android.widget.Toast
+import androidx.activity.addCallback
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.navigation.fragment.findNavController
 import com.afollestad.materialdialogs.MaterialDialog
 import com.dgehm.luminarias.GlobalUbicacion
@@ -38,13 +52,18 @@ import com.dgehm.luminarias.model.ResponseDistrito
 import com.dgehm.luminarias.model.ResponseMunicipio
 import com.dgehm.luminarias.model.Tipo
 import com.dgehm.luminarias.model.TipoFalla
+import com.google.firebase.crashlytics.buildtools.reloc.org.apache.commons.io.output.ByteArrayOutputStream
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Response
 import org.json.JSONObject
+import java.io.File
 import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 
 class CensoIngresoFragment : Fragment() {
@@ -77,6 +96,17 @@ class CensoIngresoFragment : Fragment() {
     private var tipoLuminariaList: List<Tipo> = emptyList()
     private var tipoFallaList: List<TipoFalla> = emptyList()
     private var potenciaPromedioList: List<PotenciaPromedio> = emptyList()
+
+
+    private lateinit var btnAdjuntarFoto: ImageView
+    private lateinit var btnTomarFoto: ImageView
+    private lateinit var imageViewFoto: ImageView
+
+    private val PICK_IMAGE_REQUEST = 1
+    private val CAMERA_REQUEST = 2
+    private var photoUri: Uri? = null
+    private val REQUEST_IMAGE_CAPTURE = 1
+    private var imagenBase64: String? = null
 
 
     private var isFirstSelection = true
@@ -626,6 +656,20 @@ class CensoIngresoFragment : Fragment() {
 
 
 
+        btnAdjuntarFoto = view.findViewById(R.id.btnAdjuntarFoto)
+        btnTomarFoto = view.findViewById(R.id.btnTomarFoto)
+        imageViewFoto = view.findViewById(R.id.imageViewFoto)
+
+        btnAdjuntarFoto.setOnClickListener {
+            openGallery()
+        }
+
+        btnTomarFoto.setOnClickListener {
+            //openCamera()
+            checkPermissions()
+        }
+
+
 
 
         btnAceptar.setOnClickListener {
@@ -782,6 +826,38 @@ class CensoIngresoFragment : Fragment() {
             val lamparaCondicion = switchCondicion.isChecked
             val observacion = editObservacion.text.toString()
 
+
+
+            if (photoUri != null) {
+                try {
+                    requireContext().contentResolver.openInputStream(photoUri!!)
+                        .use { inputStream ->
+                            val originalBytes = inputStream?.readBytes()
+                            val originalSize = originalBytes?.size ?: 0
+
+                            if (originalSize > 800 * 1024) {  // 800 KB in bytes
+                                // Compress image
+                                val bitmap = originalBytes?.let { it1 -> BitmapFactory.decodeByteArray(originalBytes, 0, it1.size) }
+                                val compressedBitmap = bitmap?.let { it1 -> compressBitmap(it1) }
+
+                                // Convert compressed bitmap to Base64
+                                val byteArrayOutputStream = ByteArrayOutputStream()
+                                if (compressedBitmap != null) {
+                                    compressedBitmap.compress(Bitmap.CompressFormat.JPEG, 80, byteArrayOutputStream)
+                                }
+                                val compressedBytes = byteArrayOutputStream.toByteArray()
+                                imagenBase64 = Base64.encodeToString(compressedBytes, Base64.DEFAULT)
+                            } else {
+                                // No compression needed, just Base64 encode original image
+                                imagenBase64 = Base64.encodeToString(originalBytes, Base64.DEFAULT)
+                            }
+                            // Log.d("ImagenBase64", imagenBase64 ?: "La cadena es nula")
+                        }
+                } catch (e: IOException) {
+                    Log.e("ImagenBase64", "Error al leer la imagen", e)
+                }
+            }
+
             val json = JSONObject().apply {
                 put("usuario", usuarioId)
                 put("latitud", latitud)
@@ -797,7 +873,13 @@ class CensoIngresoFragment : Fragment() {
                 put("condicion_lampara", lamparaCondicion)
                 put("tipo_falla", tipoFallaId)
                 put("observacion", observacion)
+                put(
+                    "imagen",
+                    if (imagenBase64.isNullOrEmpty()) JSONObject.NULL else imagenBase64
+                )
             }.toString()
+
+            Log.d("json", "Botón Aceptar presionado $json")
 
             // Realizar la petición POST
             val endpoint = "/api_censo_luminaria"
@@ -1087,6 +1169,123 @@ class CensoIngresoFragment : Fragment() {
                 }
             }
         })
+    }
+
+
+
+    private fun openGallery() {
+        // Intent para seleccionar una imagen de la galería
+        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        startActivityForResult(intent, PICK_IMAGE_REQUEST)
+    }
+
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode == Activity.RESULT_OK) {
+            when (requestCode) {
+                // Para galería
+                PICK_IMAGE_REQUEST -> {
+                    data?.data?.let { uri ->
+                        photoUri = uri
+                        imageViewFoto.setImageURI(uri)
+                        // Hacer visible el ImageView
+                        imageViewFoto.visibility = View.VISIBLE
+                    }
+                }
+
+                // Para cámara
+                CAMERA_REQUEST -> {
+                    photoUri?.let { uri ->
+                        imageViewFoto.setImageURI(uri)
+                        // Hacer visible el ImageView
+                        imageViewFoto.visibility = View.VISIBLE
+                    }
+                }
+            }
+        }
+    }
+
+
+    // Método para verificar permisos
+    private fun checkPermissions() {
+        val cameraPermission = ContextCompat.checkSelfPermission(requireContext(), android.Manifest.permission.CAMERA)
+
+        if (cameraPermission != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                requireActivity(),
+                arrayOf(android.Manifest.permission.CAMERA),
+                REQUEST_IMAGE_CAPTURE
+            )
+        } else {
+            openCamera()  // Si el permiso está concedido, abrir la cámara
+        }
+    }
+
+    // Método para abrir la cámara
+    private fun openCamera() {
+        val photoFile = createImageFile()
+        photoUri = FileProvider.getUriForFile(
+            requireContext(),
+            "com.dgehm.luminarias.fileprovider",
+            photoFile
+        )
+        val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
+            putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
+        }
+        startActivityForResult(cameraIntent, CAMERA_REQUEST)
+    }
+
+    // Método para convertir la imagen de la URI a Base64
+    private fun createImageFile(): File {
+        val storageDir = requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        return File.createTempFile(
+            "JPEG_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())}_",
+            ".jpg",
+            storageDir
+        )
+    }
+
+
+
+    // Compress image by resizing it (you can adjust the size as per your needs)
+    private fun compressBitmap(bitmap: Bitmap): Bitmap {
+        val maxWidth = 800  // Max width for the compressed image
+        val maxHeight = 800  // Max height for the compressed image
+
+        val width = bitmap.width
+        val height = bitmap.height
+
+        val scaleFactor = Math.min(maxWidth.toFloat() / width, maxHeight.toFloat() / height)
+        val newWidth = (width * scaleFactor).toInt()
+        val newHeight = (height * scaleFactor).toInt()
+
+        return Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true)
+    }
+
+
+
+
+
+    override fun onResume() {
+        super.onResume()
+
+        // Cambiar el título de la ActionBar
+        (activity as? AppCompatActivity)?.supportActionBar?.apply {
+            title = "Reporte de falla"
+            setDisplayHomeAsUpEnabled(true) // Muestra el botón de retroceso
+        }
+
+        // Manejar la acción del botón de retroceso
+        requireActivity().onBackPressedDispatcher.addCallback(this) {
+            parentFragmentManager.popBackStack()
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        // Liberar el binding cuando la vista sea destruida
+        _binding = null
     }
 
 

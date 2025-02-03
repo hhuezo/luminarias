@@ -857,7 +857,9 @@ class DatabaseHelper(private val context: Context) {
         observacion: String?,
         tipoFallaId: Int?,
         condicionLampara: Int,
-        companiaId: Int?
+        companiaId: Int?,
+        photoUri: String?,
+        tipoImagen: String?
     ): Long {
         val db = SQLiteDatabase.openDatabase(databasePath, null, SQLiteDatabase.OPEN_READWRITE)
 
@@ -876,6 +878,8 @@ class DatabaseHelper(private val context: Context) {
             put("tipo_falla_id", tipoFallaId) // Puede ser null
             put("condicion_lampara", condicionLampara)
             put("compania_id", companiaId) // Puede ser null
+            put("url_foto", photoUri)
+            put("tipo_imagen", tipoImagen)
         }
 
         val newRowId = db.insert("censo_luminaria", null, values)
@@ -982,11 +986,13 @@ class DatabaseHelper(private val context: Context) {
                 val tipoFallaId = cursor.getInt(cursor.getColumnIndexOrThrow("tipo_falla_id"))
                 val condicionLampara = cursor.getInt(cursor.getColumnIndexOrThrow("condicion_lampara"))
                 val companiaId = cursor.getInt(cursor.getColumnIndexOrThrow("compania_id"))
+                val urlFoto = cursor.getString(cursor.getColumnIndexOrThrow("url_foto"))
+                val tipoImagen = cursor.getString(cursor.getColumnIndexOrThrow("tipo_imagen"))
 
                 val censo = CensoOffline(
                     id, tipoLuminariaId, fecha, potenciaNominal,potenciaPromedioId, consumoMensual,
                     distritoId, usuarioIngreso, latitud, longitud, usuario,
-                    direccion, observacion, tipoFallaId, condicionLampara, companiaId
+                    direccion, observacion, tipoFallaId, condicionLampara, companiaId, urlFoto, tipoImagen
                 )
                 censos.add(censo)
             } while (cursor.moveToNext())

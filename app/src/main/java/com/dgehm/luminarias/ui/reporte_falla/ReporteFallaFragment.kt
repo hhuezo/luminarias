@@ -84,10 +84,10 @@ class ReporteFallaFragment : Fragment(), ReporteFallaAdapter.OnReporteFallaClick
 
         val fab: FloatingActionButton = view.findViewById(R.id.fab)
 
-        if (usuarioId > 0)
+        /*if (usuarioId > 0)
         {
             fab.visibility = View.VISIBLE
-        }
+        }*/
 
         binding.fab.setOnClickListener {
             // Navegar al PersonaCreateFragment
