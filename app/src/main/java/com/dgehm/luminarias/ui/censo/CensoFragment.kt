@@ -115,7 +115,7 @@ class CensoFragment : Fragment() , CensoAdapter.OnCensoClickListener{
         val reporteRecyclerView: RecyclerView? = binding.recyclerView
         reporteRecyclerView?.layoutManager = LinearLayoutManager(requireContext())
 
-
+        Log.e("url ","url: /api_censo_luminaria?usuario_id=$usuarioId")
         client.get("/api_censo_luminaria?usuario_id=$usuarioId", object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 Log.e("API_ERROR", "Fallo al obtener los datos: ${e.message}")

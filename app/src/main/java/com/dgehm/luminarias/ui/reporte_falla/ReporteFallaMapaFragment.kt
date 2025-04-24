@@ -206,10 +206,9 @@ class ReporteFallaMapaFragment : Fragment(), OnMapReadyCallback {
                     val address = jsonObject.optJSONObject("address")
 
                     val departamento = address?.optString("state")
-                    val distrito = address?.optString("town")
-                        ?: address?.optString("city")
-                        ?: address?.optString("village")
-                        ?: address?.optString("county")
+                    val distrito = listOf("district", "city", "town", "village", "county", "city_district", "municipality")
+                        .mapNotNull { key -> address?.optString(key).takeIf { !it.isNullOrEmpty() } }
+                        .firstOrNull()
 
                     // Asignar los valores a las variables correspondientes
                     departamentoNombre = departamento

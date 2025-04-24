@@ -1,6 +1,7 @@
 package com.dgehm.luminarias.ui.censo
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -138,10 +139,16 @@ class CensoIngresoFragment : Fragment() {
         departamentoId = GlobalUbicacion.departamentoId!!
         distritoId = GlobalUbicacion.distritoId!!
         municipioId = GlobalUbicacion.municipioId!!
-        usuarioId = GlobalUbicacion.usuarioId!!
         direccion = GlobalUbicacion.direccion.toString()
 
-        usuarioId = 1
+
+        val sharedPreferences = requireContext().getSharedPreferences("Prefs", Context.MODE_PRIVATE)
+        usuarioId = sharedPreferences.getInt("usuarioId", 0)
+
+        if (usuarioId == 0) {
+            Toast.makeText(requireContext(), "Error: Usuario no encontrado", Toast.LENGTH_LONG)
+                .show()
+        }
 
         val editDireccion: EditText? = view.findViewById(R.id.editDireccion)
         editDireccion?.setText(direccion)
@@ -389,10 +396,6 @@ class CensoIngresoFragment : Fragment() {
                     val tipoFallaSeleccionado = tipoFallaList[position]
                     tipoFallaId = tipoFallaSeleccionado.id
 
-
-
-
-
                     Log.d(
                         "Debug",
                         "Tipo de falla seleccionada: ${tipoFallaSeleccionado.nombre}, " +
@@ -526,8 +529,8 @@ class CensoIngresoFragment : Fragment() {
 
             override fun onResponse(call: Call, response: Response) {
                 val responseData = response.body?.string()
-                //Log.d("url","url: /api_censo_luminaria/create?departamento_id=$departamentoId&distrito_id=$distritoId&latitude=$latitud&longitude=$longitud&usuario_id=$usuarioId")
-                //Log.d("respose","response $responseData")
+                Log.d("url","url: /api_censo_luminaria/create?departamento_id=$departamentoId&distrito_id=$distritoId&latitude=$latitud&longitude=$longitud&usuario_id=$usuarioId")
+                Log.d("respose puntos cercanos","response $responseData")
                 if (responseData != null) {
                     try {
                         val gson = Gson()
@@ -668,6 +671,26 @@ class CensoIngresoFragment : Fragment() {
             //openCamera()
             checkPermissions()
         }
+
+
+        // Listener para el Switch
+        switchCondicion.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                tipoFallaId = 0
+                if (tipoFallaSpinner != null) {
+                    tipoFallaSpinner.setSelection(0)
+                }  // Reinicia el Spinner a "SELECCIONE"
+                if (tipoFallaSpinner != null) {
+                    tipoFallaSpinner.isEnabled = false
+                }  // Deshabilita el Spinner
+            } else {
+                if (tipoFallaSpinner != null) {
+                    tipoFallaSpinner.isEnabled = true
+                }  // Habilita el Spinner
+            }
+        }
+
+
 
 
 

@@ -211,16 +211,18 @@ class CensoMapaFragment : Fragment() , OnMapReadyCallback {
 
 
                     val departamento = address?.optString("state")
-                    val distrito = address?.optString("town")
-                        ?: address?.optString("city")
-                        ?: address?.optString("village")
-                        ?: address?.optString("county")
+                    val distrito = listOf("district", "city", "town", "village", "county", "city_district", "municipality")
+                        .mapNotNull { key -> address?.optString(key).takeIf { !it.isNullOrEmpty() } }
+                        .firstOrNull()
+
+
 
                     // Asignar los valores a las variables correspondientes
                     departamentoNombre = departamento
                     distritoNombre = (distrito?.toString() ?: "").trim()
 
-
+                    Log.d("address","address "+distrito)
+                    Log.d("address","address "+address)
                     // Extraer el valor de "display_name"
                     val displayName = jsonObject.getString("display_name")
 

@@ -122,7 +122,17 @@ class ReporteFallaIngresoFragment : Fragment() {
         departamentoId = GlobalUbicacion.departamentoId!!
         distritoId = GlobalUbicacion.distritoId!!
         municipioId = GlobalUbicacion.municipioId!!
-        usuarioId = GlobalUbicacion.usuarioId!!
+
+
+        val sharedPreferences = requireContext().getSharedPreferences("Prefs", Context.MODE_PRIVATE)
+        usuarioId = sharedPreferences.getInt("usuarioId", 0)
+        val correoPreference = sharedPreferences.getString("correo", "")
+        val usuarioPreference = sharedPreferences.getString("usuario", "")
+
+        if (usuarioId == 0) {
+            Toast.makeText(requireContext(), "Error: Usuario no encontrado", Toast.LENGTH_LONG)
+                .show()
+        }
 
 
 
@@ -140,9 +150,8 @@ class ReporteFallaIngresoFragment : Fragment() {
 
         val btnAceptar: Button = view.findViewById(R.id.btnAceptar)
 
-        val sharedPreferences = requireContext().getSharedPreferences("Prefs", Context.MODE_PRIVATE)
-        val correoPreference = sharedPreferences.getString("correo", "")
-        val usuarioPreference = sharedPreferences.getString("usuario", "")
+
+
 
         if(correoPreference != "")
         {
